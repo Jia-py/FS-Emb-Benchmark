@@ -80,8 +80,8 @@ class Recommender(torch.nn.Module, abc.ABC):
     def _set_data_field(self, data):
         pass
 
-    def _init_model(self, train_data, drop_unused_field=True):
-        self._set_data_field(train_data) #TODO(@AngusHuang17): to be considered in a better way
+    def _init_model(self, train_data, use_field, drop_unused_field=True):
+        self._set_data_field(train_data, use_field) #TODO(@AngusHuang17): to be considered in a better way
         self.fields = train_data.use_field
         self.frating = train_data.frating
         assert self.frating in self.fields, 'rating field is required.'
@@ -134,7 +134,10 @@ class Recommender(torch.nn.Module, abc.ABC):
         self.tensorboard_logger.add_text('Configuration/model', dict2markdown_table(self.config, nested=True))
         self.tensorboard_logger.add_text('Configuration/data', dict2markdown_table(train_data.config))
 
-        self._init_model(train_data)
+        # 提前了，为了拿到device
+        self._accelerate()
+
+        self._init_model(train_data, train_data.field2type.keys())
 
         self._init_parameter()
 
@@ -158,6 +161,9 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         self._accelerate()
 
+        if self.config['fs']['before_train_prepare'] == True:
+            self.feature_selection_layer.before_train_prepare()
+
         if self.config['train']['accelerator'] == 'ddp':
             mp.spawn(self.parallel_training, args=(self.world_size, train_data, val_data),
                      nprocs=self.world_size, join=True)
@@ -168,7 +174,33 @@ class Recommender(torch.nn.Module, abc.ABC):
                 val_loader = val_data.eval_loader(batch_size=self.config['eval']['batch_size'])
             else:
                 val_loader = None
-            self.optimizers = self._get_optimizers()
+            
+            if self.config['fs']['optimization'] == 'DARTS':
+                self.optimizers = self.feature_selection_layer.set_optimizer(self)
+            else:
+                self.optimizers = self._get_optimizers()
+            self.fit_loop(val_loader)
+
+        if self.config['fs']['retrain'] == True:
+            self.logger.info('retrain model')
+            if self.config['fs']['retrain_prepare'] == True:
+                k = 5
+                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(5)
+                use_fields.append(self.frating)
+            if self.config['fs']['reinitialize'] == 'param':
+                # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可
+                self._init_parameter()
+            elif self.config['fs']['reinitialize'] == 'all':
+                self._init_model(train_data, use_field=use_fields)
+                self._init_parameter()
+                # delete old model ckpt
+                os.remove(self.callback.save_path)
+                self._accelerate()
+                self.config['fs']['optimizer'] = 'Normal'
+                # val_data
+                self.optimizers = self._get_optimizers()
+            if self.config['fs']['retrain_prepare'] == True:
+                self.feature_selection_layer.retrain_prepare_after_ini()
             self.fit_loop(val_loader)
         return self.callback.best_ckpt['metric']
 
@@ -502,6 +534,8 @@ class Recommender(torch.nn.Module, abc.ABC):
     def fit_loop(self, val_dataloader=None):
         try:
             nepoch = 0
+            # add this nepoch
+            self.nepoch = nepoch
             for e in range(self.config['train']['epochs']):
                 self.logged_metrics = {}
                 self.logged_metrics['epoch'] = nepoch
@@ -509,7 +543,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                 # training procedure
                 tik_train = time.time()
                 self.train()
-                training_output_list = self.training_epoch(nepoch)
+                training_output_list = self.training_epoch(nepoch, val_dataloader)
                 tok_train = time.time()
 
                 # validation procedure
@@ -559,7 +593,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                 self.callback.save_checkpoint(nepoch)
                 self.ckpt_path = self.callback.get_checkpoint_path()
 
-    def training_epoch(self, nepoch):
+    def training_epoch(self, nepoch, val_dataloader):
         if hasattr(self, "_update_item_vector"):
             self._update_item_vector()
 
@@ -582,6 +616,9 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         if not (isinstance(optimizers, List) or isinstance(optimizers, Tuple)):
             optimizers = [optimizers]
+
+        # iter val_dataloader
+        val_iter = iter(val_dataloader)
 
         for loader_idx, loader in enumerate(trn_dataloaders):
             outputs = []
@@ -635,6 +672,19 @@ class Recommender(torch.nn.Module, abc.ABC):
                     #
                     if opt is not None:
                         opt['optimizer'].step()
+
+                if self.config['fs']['optimization'] == 'DARTS':
+                    if batch_idx % self.config['fs']['update_frequency'] == 0:
+                        self.Controller_optimizer.zero_grad()
+                        batch = next(val_iter)
+                        batch = self._to_device(batch, self._parameter_device)
+                        if getattr(self, '_dp', False):     # there are perfermance degrades in DP mode
+                            loss = data_parallel(self, 'training_step', inputs=None, module_kwargs=training_step_args, device_ids=self._gpu_list, output_device=self.device)
+                        else:
+                            loss = self.training_step(batch)
+                        loss.backward()
+                        self.Controller_optimizer.step()
+
             if len(outputs) > 0:
                 output_list.append(outputs)
         return output_list

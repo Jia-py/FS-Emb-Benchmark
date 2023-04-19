@@ -38,7 +38,7 @@ train:
     early_stop_mode: max
     early_stop_patience: 10
 
-    epochs: 1000
+    epochs: 10
     gpu: 1
     grad_clip_norm: ~
     init_method: xavier_normal  # [xavier_normal, normal]

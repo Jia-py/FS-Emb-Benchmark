@@ -1,0 +1,8 @@
+fs:
+  retrain: True
+  retrain_prepare: True
+  optimization: DARTS
+  retrain_reinitialize: True
+  before_train_prepare: False
+  reinitialize: all
+  update_frequency: 5

@@ -270,6 +270,7 @@ class TripletDataset(Dataset):
 
         dtype = [np.float64 if _ == 'float' else str for _ in types_of_fields]
         if update_dict:
+            # 更新feature和type的映射
             self.field2type.update(dict(zip(fields, types_of_fields)))
 
         if not "encoding_method" in self.config:
@@ -396,6 +397,14 @@ class TripletDataset(Dataset):
             count_inter_user_or_item = sum(1 for x in field_feat if x[-1] < 3)
             split_points = np.cumsum([len(_) for _ in token_list])
             token_list = np.concatenate(token_list)
+            '''
+            # tid_list是索引列表, tokens保存所有unique的token，即对应的id，但这个id是原始数据规定的id，不是从0开始的连续id
+            codes, uniques = pd.factorize(['b', 'b', 'a', 'c', 'b'])
+            codes
+            array([0, 0, 1, 2, 0])
+            uniques
+            array(['b', 'a', 'c'], dtype=object)
+            '''
             tid_list, tokens = pd.factorize(token_list)
             max_user_or_item_id = np.max(
                 tid_list[:split_points[count_inter_user_or_item-1]]) + 1 if flag else 0
@@ -428,7 +437,9 @@ class TripletDataset(Dataset):
                             self.field2token2idx[field] = {
                                 t: i for i, t in enumerate(tokens_ori)}
                     else:
+                        # field2tokens例子：['[PAD]', '196', '186', '298', '253', '305']
                         self.field2tokens[field] = tokens
+                        # field2token2idx例子：{'[PAD]': 0, '196': 1, '186': 2, '298': 3, '253': 4, '305': 5}
                         self.field2token2idx[field] = token2id
                 if 'seq' not in self.field2type[field]:
                     feat[field] = _
@@ -938,6 +949,7 @@ class TripletDataset(Dataset):
                 self.inter_feat[self.fuid], sort=False).count()
             if shuffle:
                 cumsum = np.hstack([[0], user_count.cumsum().iloc[:-1]])
+                # 对每个位置进行随机打乱，但保证每个用户的数据不会被打乱，相同user-id的数据会被打乱，不同user-id的数据仍保持原来的顺序
                 idx = np.concatenate([np.random.permutation(c) + start
                     for start, c in zip(cumsum, user_count)])
                 self.inter_feat = self.inter_feat.iloc[idx].reset_index(drop=True)

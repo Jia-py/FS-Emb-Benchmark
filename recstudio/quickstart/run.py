@@ -1,8 +1,9 @@
 import os, time, torch
 from typing import *
 from recstudio.utils import *
+from recstudio.utils.utils import get_feature_selection
 
-def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, verbose=True, **kwargs):
+def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, verbose=True, feature_selection_method='optFS', **kwargs):
     model_class, model_conf = get_model(model)
 
     if model_config_path is not None:
@@ -19,6 +20,10 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
 
     if kwargs is not None:
         model_conf = deep_update(model_conf, kwargs)
+
+    fs_class, fs_conf = get_feature_selection(feature_selection_method)
+    model_conf.update(fs_conf)              # update feature selection config
+    model_conf['fs']['class'] = fs_class
 
     log_path = time.strftime(f"{model}/{dataset}/%Y-%m-%d-%H-%M-%S.log", time.localtime())
     logger = get_logger(log_path)
@@ -53,6 +58,6 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     datasets = dataset_class(name=dataset, config=data_conf).build(**model_conf['data'])
     logger.info(f"{datasets[0]}")
     logger.info(f"\n{set_color('Model Config', 'green')}: \n\n" + color_dict_normal(model_conf, False))
-    val_result = model.fit(*datasets[:2], run_mode='light')
+    val_result = model.fit(*datasets[:2], run_mode='light') # 在fit函数里面才会调用model._init_model()函数
     test_result = model.evaluate(datasets[-1])
     return (model, datasets), (val_result, test_result)

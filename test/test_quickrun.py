@@ -1,8 +1,8 @@
 import sys
-sys.path.append(".")
+sys.path.append("./")
 from recstudio import quickstart
 
-quickstart.run(model='MultiVAE', dataset='ml-100k', gpu=[2])
+quickstart.run(model='DCN', dataset='ml-100k', feature_selection_method='AutoField')
 
 
 import recstudio.data as recdata
