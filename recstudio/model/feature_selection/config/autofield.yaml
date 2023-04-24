@@ -1,4 +1,5 @@
 fs:
+  name: AutoField
   retrain: True
   retrain_prepare: True
   optimization: DARTS

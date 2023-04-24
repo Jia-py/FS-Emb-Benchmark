@@ -25,7 +25,7 @@ class DCN(BaseRanker):
                     batch_norm=model_config['batch_norm'])
         self.fc = torch.nn.Linear(num_features*self.embed_dim + mlp_layer[-1], 1)
 
-        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config['train']['epochs'], train_data.field2type, self.device)
+        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
 
     def score(self, batch):
         emb = self.embedding(batch)

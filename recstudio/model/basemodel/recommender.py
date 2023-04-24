@@ -104,6 +104,7 @@ class Recommender(torch.nn.Module, abc.ABC):
         val_data: Optional[TripletDataset] = None,
         run_mode='light',
         config: Dict = None,
+        use_fields: Optional[List[str]] = None,
         **kwargs
     ) -> None:
         r"""
@@ -136,8 +137,10 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         # 提前了，为了拿到device
         self._accelerate()
-
-        self._init_model(train_data, train_data.field2type.keys())
+        if use_fields is not None:
+            self._init_model(train_data, use_fields)
+        else:
+            self._init_model(train_data, train_data.field2type.keys())
 
         self._init_parameter()
 
@@ -177,15 +180,21 @@ class Recommender(torch.nn.Module, abc.ABC):
             
             if self.config['fs']['optimization'] == 'DARTS':
                 self.optimizers = self.feature_selection_layer.set_optimizer(self)
+            elif self.config['fs']['optimization'] == 'multiple':
+                self.optimizers = self.feature_selection_layer.set_optimizer(self)
             else:
                 self.optimizers = self._get_optimizers()
             self.fit_loop(val_loader)
 
         if self.config['fs']['retrain'] == True:
             self.logger.info('retrain model')
+            # reinitialize early stop
+            self.callback = self._get_callback(train_data.name)
+            self.logger.info('save_dir:' + self.callback.save_dir)
             if self.config['fs']['retrain_prepare'] == True:
+                # 除去user_id, item_id, rating, 选取前5个特征作为retrain的特征
                 k = 5
-                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(5)
+                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(5, train_data.fuid, train_data.fiid)
                 use_fields.append(self.frating)
             if self.config['fs']['reinitialize'] == 'param':
                 # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可
@@ -193,8 +202,6 @@ class Recommender(torch.nn.Module, abc.ABC):
             elif self.config['fs']['reinitialize'] == 'all':
                 self._init_model(train_data, use_field=use_fields)
                 self._init_parameter()
-                # delete old model ckpt
-                os.remove(self.callback.save_path)
                 self._accelerate()
                 self.config['fs']['optimizer'] = 'Normal'
                 # val_data
@@ -580,6 +587,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                         break
 
                 nepoch += 1
+                self.nepoch = nepoch
 
             self.callback.save_checkpoint(nepoch)
             self.ckpt_path = self.callback.get_checkpoint_path()
@@ -684,6 +692,16 @@ class Recommender(torch.nn.Module, abc.ABC):
                             loss = self.training_step(batch)
                         loss.backward()
                         self.Controller_optimizer.step()
+                
+                if self.config['fs']['name'] == 'LPFS':
+                    p = self.optimizers[-1]['optimizer'].param_groups[0]['params'][0]
+                    thr = self.config['fs']['lambda'] * self.config['train']['learning_rate']
+                    in1 = p.data > thr
+                    in2 = p.data < -thr
+                    in3 = ~(in1 | in2)
+                    p.data[in1] -= thr
+                    p.data[in2] += thr
+                    p.data[in3] = 0
 
             if len(outputs) > 0:
                 output_list.append(outputs)

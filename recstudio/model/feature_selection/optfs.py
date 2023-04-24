@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class optFS(nn.Module):
 
-    def __init__(self, field2token2idx, epochs, field2type, device) -> None:
+    def __init__(self, field2token2idx, config, field2type, device) -> None:
         super().__init__()
         self.field2token2idx = field2token2idx
         self.gate = {field : torch.Tensor(len(field2token2idx[field]), 1).to(device) for field in field2token2idx}
@@ -15,8 +15,9 @@ class optFS(nn.Module):
         
         self.g = {field : torch.ones_like(self.gate[field]).to(device) for field in self.gate} # final g vector
         self.gate = {field : torch.nn.Parameter(self.gate[field]).to(device) for field in self.gate} # gc vector in paper
+        self.gate = torch.nn.ParameterDict(self.gate)
 
-        self.epochs = epochs
+        self.epochs = config['train']['epochs']
         self.field2type = field2type
 
         self.mode = 'train'

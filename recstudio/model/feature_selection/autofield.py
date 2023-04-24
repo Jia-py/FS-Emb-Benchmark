@@ -4,7 +4,7 @@ import numpy as np
 
 class AutoField(nn.Module):
 
-    def __init__(self, field2token2idx, epochs, field2type, device) -> None:
+    def __init__(self, field2token2idx, config, field2type, device) -> None:
         super().__init__()
         self.field2token2idx = field2token2idx
         self.gate = {field : torch.Tensor(np.ones([1,2])*0.5).to(device) for field in field2token2idx}
@@ -12,7 +12,7 @@ class AutoField(nn.Module):
         self.gate = torch.nn.ParameterDict(self.gate)
         self.tau = 1.0
 
-        self.epochs = epochs
+        self.epochs = config['train']['epochs']
         self.field2type = field2type
 
         self.mode = 'train'
@@ -38,19 +38,21 @@ class AutoField(nn.Module):
         x_ = torch.mul(x, gate_)
         return x_
     
-    def retrain_prepare_before_ini(self, k):
+    def retrain_prepare_before_ini(self, k, user_id, item_id):
         self.mode = 'retrain'
         fields = [field for field in self.gate]
         gate = torch.concat([self.gate[field] for field in self.gate], dim=0)[:,-1] # token_num, 2
         indices = torch.argsort(gate, descending=True)
-        use_fields = []
-        for i in range(k):
-            use_fields.append(fields[indices[i]])
-        # 如果把item_id, user_id扔了会报错
-        if 'item_id' not in use_fields:
-            use_fields.append('item_id')
-        if 'user_id' not in fields:
-            use_fields.append('user_id')
+        use_fields = [user_id, item_id]
+        tmp_num = 0
+        for i in indices:
+            if fields[i] in [user_id, item_id]:
+                continue
+            elif tmp_num < k:
+                use_fields.append(fields[i])
+                tmp_num += 1
+            else:
+                break
         return use_fields
 
     def retrain_prepare_after_ini(self):

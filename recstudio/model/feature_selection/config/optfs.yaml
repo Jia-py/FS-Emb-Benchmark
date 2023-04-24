@@ -1,7 +1,8 @@
 fs:
+  name: OptFS
   retrain: True
   retrain_prepare: True
-  using_DARTS: False
+  optimization: Normal
   retrain_reinitialize: False
   before_train_prepare: False
   reinitialize: param

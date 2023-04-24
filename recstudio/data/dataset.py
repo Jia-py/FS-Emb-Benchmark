@@ -813,7 +813,9 @@ class TripletDataset(Dataset):
                 rating.split(tuple(lens.numpy())), batch_first=True)
         else:
             idx = self.data_index[index]
+            # 取出对应的iteraction特征
             data = self.inter_feat[idx]
+            # 当前batch的用户id和item id
             uid, iid = data[self.fuid], data[self.fiid]
             data.update(self.user_feat[uid])
             data.update(self.item_feat[iid])
