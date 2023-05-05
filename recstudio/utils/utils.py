@@ -158,7 +158,7 @@ def get_feature_selection(method_name: str):
     model_class = getattr(model_module, method_name)
     dir = os.path.dirname(model_module.__file__)
     conf = dict()
-    fname = os.path.join(os.path.dirname(dir), 'feature_selection\\config', model_file_name+'.yaml')
+    fname = os.path.join(os.path.dirname(dir), 'feature_selection/config', model_file_name+'.yaml')
     conf = deep_update(conf, parser_yaml(fname))
     return model_class, conf
 
