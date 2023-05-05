@@ -1,10 +1,12 @@
 import os, time, torch
 import pandas as pd
+import nni
 from typing import *
 from recstudio.utils import *
 from recstudio.utils.utils import get_feature_selection
 
-def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, verbose=True, feature_selection_method='Lasso', **kwargs):
+def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, \
+        verbose=True, feature_selection_method='Lasso', nni=True,  **kwargs):
     model_class, model_conf = get_model(model)
 
     if model_config_path is not None:
@@ -25,6 +27,10 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     fs_class, fs_conf = get_feature_selection(feature_selection_method)
     model_conf.update(fs_conf)              # update feature selection config
     model_conf['fs']['class'] = fs_class
+
+    if nni:
+        params = nni.get_next_parameter()
+        model_conf['model'].update(params)
 
     log_path = time.strftime(f"{model}/{dataset}/%Y-%m-%d-%H-%M-%S.log", time.localtime())
     logger = get_logger(log_path)
@@ -68,8 +74,10 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
         k = 5
         use_fields = machine_learning_selection(datasets, feature_selection_method, k)
 
-
-    val_result = model.fit(*datasets[:2], run_mode='light', use_fields=use_fields) # 在fit函数里面才会调用model._init_model()函数
+    if nni:
+        val_result = model.fit(*datasets[:2], run_mode='tune', use_fields=use_fields)
+    else:
+        val_result = model.fit(*datasets[:2], run_mode='light', use_fields=use_fields) # 在fit函数里面才会调用model._init_model()函数
     test_result = model.evaluate(datasets[-1])
     return (model, datasets), (val_result, test_result)
 

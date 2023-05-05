@@ -1,6 +1,9 @@
 model:
   embed_dim: 10
   mlp_layer: [256, 256, 256]
+  mlp_layer_0 : [256]
+  mlp_layer_1 : [256]
+  mlp_layer_2 : [256]
   activation: relu
   num_layers: 6
   dropout: 0.5
