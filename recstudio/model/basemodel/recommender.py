@@ -253,7 +253,7 @@ class Recommender(torch.nn.Module, abc.ABC):
         output_list = self.test_epoch(test_loader)
         output.update(self.test_epoch_end(output_list))
         if self.run_mode == 'tune':
-            output['default'] = output[self.val_metric]
+            output['default'] = output[self.val_metric].item()
             nni.report_final_result(output)
         if verbose:
             self.logger.info(color_dict(output, self.run_mode == 'tune'))
@@ -317,7 +317,7 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         if self.val_check and self.run_mode == 'tune':
             metric = self.logged_metrics[self.val_metric]
-            nni.report_intermediate_result(metric)
+            # nni.report_intermediate_result(metric)
         # TODO: only print when rank=0
         if self.run_mode in ['light', 'tune'] or self.val_check:
             self.logger.info(color_dict(self.logged_metrics, self.run_mode == 'tune'))

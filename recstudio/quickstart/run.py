@@ -74,7 +74,7 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
         k = 5
         use_fields = machine_learning_selection(datasets, feature_selection_method, k)
 
-    if nni:
+    if use_nni:
         val_result = model.fit(*datasets[:2], run_mode='tune', use_fields=use_fields)
     else:
         val_result = model.fit(*datasets[:2], run_mode='light', use_fields=use_fields) # 在fit函数里面才会调用model._init_model()函数
