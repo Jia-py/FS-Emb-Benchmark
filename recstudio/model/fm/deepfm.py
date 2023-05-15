@@ -18,8 +18,6 @@ class DeepFM(BaseRanker):
         self.mlp = MLPModule([self.embedding.num_features*self.embed_dim]+model_config['mlp_layer']+[1],
                              model_config['activation'], model_config['dropout'],
                              last_activation=False, last_bn=False)
-        
-        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
 
     def score(self, batch):
         lr_score = self.linear(batch)

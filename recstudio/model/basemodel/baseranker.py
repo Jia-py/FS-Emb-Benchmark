@@ -47,7 +47,8 @@ class BaseRanker(Recommender):
             self.logger.warning('No retriever is used, topk metrics is not supported.')
 
         # 可以记录一些映射关系
-        
+        # 设置feature selection
+        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
 
     def _set_data_field(self, data, use_field):
         # token_field = set([k for k, v in data.field2type.items() if v=='token'])
