@@ -6,7 +6,7 @@ from recstudio.utils import *
 from recstudio.utils.utils import get_feature_selection
 
 def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, \
-        verbose=True, feature_selection_method='Lasso', use_nni=True,  **kwargs):
+        verbose=True, feature_selection_method='Lasso', use_nni=True, nni_params=None,  **kwargs):
     model_class, model_conf = get_model(model)
 
     if model_config_path is not None:
@@ -29,8 +29,7 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     model_conf['fs']['class'] = fs_class
 
     if use_nni:
-        params = nni.get_next_parameter()
-        model_conf['model'].update(params)
+        model_conf['model'].update(nni_params)
 
     log_path = time.strftime(f"{model}/{dataset}/%Y-%m-%d-%H-%M-%S.log", time.localtime())
     logger = get_logger(log_path)
