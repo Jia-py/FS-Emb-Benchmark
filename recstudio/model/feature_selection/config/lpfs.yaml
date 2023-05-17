@@ -1,0 +1,7 @@
+fs:
+  name: LPFS
+  lambda: 0.01
+  retrain: False
+  optimization: multiple # DARTS, multiple, single
+  before_train_prepare: False
+  epsilon_update_frequency: 10

@@ -1,12 +1,12 @@
-experimentName: BPR-ml-100k
-searchSpaceFile: ../search_space/BPR.json
+experimentName: DCN-ml-100k
+searchSpaceFile: ../search_space/DCN.json
 
-trialCommand: python3 run.py -m BPR --mode tune
+trialCommand: python3 /root/code/FS-Emb-Benchmark/test/test_quickrun.py
 trialCodeDirectory: ../..
 trialGpuNumber: 1
 
-trialConcurrency: 4            # Run 4 trials concurrently.
-maxTrialNumber: 100              # Generate at most 10 trials.
+trialConcurrency: 2            # Run 4 trials concurrently.
+maxTrialNumber: 10              # Generate at most 10 trials.
 maxExperimentDuration: 100d       # Stop generating trials after 1 hour.
 
 tuner:                          # Configure the tuning algorithm.

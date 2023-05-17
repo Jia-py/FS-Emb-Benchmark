@@ -1,0 +1,8 @@
+fs:
+  name: optFS
+  retrain: True
+  retrain_prepare: True
+  optimization: Normal
+  retrain_reinitialize: False
+  before_train_prepare: False
+  reinitialize: param

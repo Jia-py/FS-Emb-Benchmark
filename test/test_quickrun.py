@@ -1,8 +1,9 @@
 import sys
-sys.path.append(".")
+sys.path.append("/root/code/FS-Emb-Benchmark")
 from recstudio import quickstart
 
-quickstart.run(model='MultiVAE', dataset='ml-100k', gpu=[2])
+# feature selection: AutoField, AdaFS, Lasso, LPFS, optFS, GBDT
+quickstart.run(model='DCN', dataset='ml-100k', feature_selection_method='AutoField', run_mode='tune')
 
 
 import recstudio.data as recdata

@@ -62,8 +62,8 @@ class Recommender(torch.nn.Module, abc.ABC):
     def _set_data_field(self, data):
         pass
 
-    def _init_model(self, train_data, drop_unused_field=True):
-        self._set_data_field(train_data) #TODO(@AngusHuang17): to be considered in a better way
+    def _init_model(self, train_data, use_field, drop_unused_field=True):
+        self._set_data_field(train_data, use_field) #TODO(@AngusHuang17): to be considered in a better way
         self.fields = train_data.use_field
         self.frating = train_data.frating
         assert self.frating in self.fields, 'rating field is required.'
@@ -84,6 +84,7 @@ class Recommender(torch.nn.Module, abc.ABC):
         val_data: Optional[TripletDataset] = None,
         run_mode='light',
         config: Dict = None,
+        use_fields: Optional[List[str]] = None,
         **kwargs
     ) -> None:
         r"""
@@ -114,12 +115,21 @@ class Recommender(torch.nn.Module, abc.ABC):
         self.tensorboard_logger.add_text('Configuration/model', dict2markdown_table(self.config, nested=True))
         self.tensorboard_logger.add_text('Configuration/data', dict2markdown_table(train_data.config))
 
-        self._init_model(train_data)
+        # self._init_model(train_data)
+        
+        self.run_mode = run_mode
+
+        # 提前了，为了拿到device
+        self._accelerate()
+
+        if use_fields is not None:
+            self._init_model(train_data, use_fields)
+        else:
+            self._init_model(train_data, train_data.field2type.keys())
 
         self._init_parameter()
 
         # config callback
-        self.run_mode = run_mode
         val_metrics = self.config['eval']['val_metrics']
         cutoff = self.config['eval']['cutoff']
         self.val_check = val_data is not None and val_metrics is not None
@@ -138,6 +148,9 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         self._accelerate()
 
+        if self.config['fs']['before_train_prepare'] == True:
+            self.feature_selection_layer.before_train_prepare()
+
         if self.config['train']['accelerator'] == 'ddp':
             mp.spawn(self.parallel_training, args=(self.world_size, train_data, val_data),
                      nprocs=self.world_size, join=True)
@@ -148,7 +161,40 @@ class Recommender(torch.nn.Module, abc.ABC):
                 val_loader = val_data.eval_loader(batch_size=self.config['eval']['batch_size'])
             else:
                 val_loader = None
-            self.optimizers = self._get_optimizers()
+            # self.optimizers = self._get_optimizers()
+            if self.config['fs']['optimization'] == 'DARTS':
+                self.optimizers = self.feature_selection_layer.set_optimizer(self)
+            elif self.config['fs']['optimization'] == 'multiple':
+                self.optimizers = self.feature_selection_layer.set_optimizer(self)
+            else:
+                self.optimizers = self._get_optimizers()
+            self.fit_loop(val_loader)
+
+        if self.config['fs']['retrain'] == True:
+            self.logger.info('retrain model')
+            # reinitialize early stop
+            self.callback = self._get_callback(train_data.name)
+            self.logger.info('save_dir:' + self.callback.save_dir)
+            if self.config['fs']['retrain_prepare'] == True:
+                # 除去user_id, item_id, rating, 选取前5个特征作为retrain的特征
+                k = 5
+                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(5, train_data.fuid, train_data.fiid)
+                if use_fields == None:
+                    use_fields = self.fields
+                else:
+                    use_fields.append(self.frating)
+            if self.config['fs']['reinitialize'] == 'param':
+                # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可
+                self._init_parameter()
+            elif self.config['fs']['reinitialize'] == 'all':
+                self._init_model(train_data, use_field=use_fields)
+                self._init_parameter()
+                self._accelerate()
+                self.config['fs']['optimizer'] = 'Normal'
+                # val_data
+                self.optimizers = self._get_optimizers()
+            if self.config['fs']['retrain_prepare'] == True:
+                self.feature_selection_layer.retrain_prepare_after_ini()
             self.fit_loop(val_loader)
         return self.callback.best_ckpt['metric']
 
@@ -271,7 +317,7 @@ class Recommender(torch.nn.Module, abc.ABC):
         self.log_dict(out)
         if self.run_mode == 'tune':
             nni_result = self._get_nni_format_result(out)
-            nni.report_intermediate_result(nni_result)
+            nni.report_intermediate_result(nni_result['auc'])
         return out
 
     def test_epoch_end(self, outputs):
@@ -292,7 +338,8 @@ class Recommender(torch.nn.Module, abc.ABC):
         self.log_dict(out, tensorboard=False)
         if self.run_mode == 'tune':
             nni_result = self._get_nni_format_result(out)
-            nni.report_final_result(nni_result)
+            # 改为返回auc
+            nni.report_final_result(nni_result['auc'])
         return out
 
     def _test_epoch_end(self, outputs, metrics):
@@ -478,6 +525,8 @@ class Recommender(torch.nn.Module, abc.ABC):
     def fit_loop(self, val_dataloader=None):
         try:
             nepoch = 0
+            # add this nepoch
+            self.nepoch = nepoch
             for e in range(self.config['train']['epochs']):
                 self.logged_metrics = {}
                 self.logged_metrics['epoch'] = nepoch
@@ -485,7 +534,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                 # training procedure
                 tik_train = time.time()
                 self.train()
-                training_output_list = self.training_epoch(nepoch)
+                training_output_list = self.training_epoch(nepoch, val_dataloader)
                 tok_train = time.time()
 
                 # validation procedure
@@ -522,6 +571,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                         break
 
                 nepoch += 1
+                self.nepoch = nepoch
 
             self.callback.save_checkpoint(nepoch)
             self.ckpt_path = self.callback.get_checkpoint_path()
@@ -535,7 +585,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                 self.callback.save_checkpoint(nepoch)
                 self.ckpt_path = self.callback.get_checkpoint_path()
 
-    def training_epoch(self, nepoch):
+    def training_epoch(self, nepoch, val_dataloader):
         if hasattr(self, "_update_item_vector"):
             self._update_item_vector()
 
@@ -558,6 +608,9 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         if not (isinstance(optimizers, List) or isinstance(optimizers, Tuple)):
             optimizers = [optimizers]
+        
+        # iter val_dataloader
+        val_iter = iter(val_dataloader)
 
         for loader_idx, loader in enumerate(trn_dataloaders):
             outputs = []
@@ -611,6 +664,29 @@ class Recommender(torch.nn.Module, abc.ABC):
                     #
                     if opt is not None:
                         opt['optimizer'].step()
+
+                if self.config['fs']['optimization'] == 'DARTS':
+                    if batch_idx % self.config['fs']['update_frequency'] == 0:
+                        self.Controller_optimizer.zero_grad()
+                        batch = next(val_iter)
+                        batch = self._to_device(batch, self._parameter_device)
+                        if getattr(self, '_dp', False):     # there are perfermance degrades in DP mode
+                            loss = data_parallel(self, 'training_step', inputs=None, module_kwargs=training_step_args, device_ids=self._gpu_list, output_device=self.device)
+                        else:
+                            loss = self.training_step(batch)
+                        loss.backward()
+                        self.Controller_optimizer.step()
+
+                if self.config['fs']['name'] == 'LPFS':
+                    p = self.optimizers[-1]['optimizer'].param_groups[0]['params'][0]
+                    thr = self.config['fs']['lambda'] * self.config['train']['learning_rate']
+                    in1 = p.data > thr
+                    in2 = p.data < -thr
+                    in3 = ~(in1 | in2)
+                    p.data[in1] -= thr
+                    p.data[in2] += thr
+                    p.data[in3] = 0
+                    
             if len(outputs) > 0:
                 output_list.append(outputs)
         return output_list

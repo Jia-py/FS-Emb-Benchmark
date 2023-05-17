@@ -1,0 +1,10 @@
+{
+    "train/learning_rate": {
+        "_type": "choice",
+        "_value": [0.0005, 0.001, 0.005]
+    },
+    "model/mlp_layer": {
+        "_type": "choice",
+        "_value": [[64,64,64],[128,128,128],[256,256,256]]
+    }
+}

@@ -37,20 +37,24 @@ class BaseRanker(Recommender):
     #      non-topk-based metrics is not supported.
     #
 
-    def _init_model(self, train_data, drop_unused_field=True):
-        super()._init_model(train_data, drop_unused_field)
+    def _init_model(self, train_data, use_field, drop_unused_field=True):
+        super()._init_model(train_data, use_field, drop_unused_field)
         self.fiid = train_data.fiid
         self.fuid = train_data.fuid
         if self.retriever is None:
             self.retriever = self._get_retriever(train_data)
         if self.retriever is None:
             self.logger.warning('No retriever is used, topk metrics is not supported.')
+        
+        # 设置feature selection
+        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
 
-    def _set_data_field(self, data):
+    def _set_data_field(self, data, use_field):
         # token_field = set([k for k, v in data.field2type.items() if v=='token'])
         # token_field.add(data.frating)
         # data.use_field = token_field
-        data.use_field = data.field2type.keys()
+        # data.use_field = data.field2type.keys()
+        data.use_field = use_field
 
     def _get_retriever(self, train_data):
         return None
