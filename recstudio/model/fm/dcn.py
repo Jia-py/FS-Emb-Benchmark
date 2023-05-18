@@ -13,7 +13,7 @@ class DCN(BaseRanker):
 
     def _init_model(self, train_data, use_field):
         super()._init_model(train_data, use_field)
-        self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data) # embedding的顺序是按照self.fields的顺序
+        #self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data) # embedding的顺序是按照self.fields的顺序
         num_features = self.embedding.num_features
         model_config = self.config['model']
         mlp_layer = model_config['mlp_layer_0'] + model_config['mlp_layer_1'] + model_config['mlp_layer_2']
@@ -24,6 +24,8 @@ class DCN(BaseRanker):
                     model_config['dropout'],
                     batch_norm=model_config['batch_norm'])
         self.fc = torch.nn.Linear(num_features*self.embed_dim + mlp_layer[-1], 1)
+
+        #self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
 
     def score(self, batch):
         emb = self.embedding(batch)

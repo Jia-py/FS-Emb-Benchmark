@@ -145,21 +145,43 @@ def get_model(model_name: str):
     return model_class, conf
 
 def get_feature_selection(method_name: str):
-    model_submodule = ['feature_selection']
-    model_file_name = method_name.lower()
+    submodule = 'feature_selection'
+    if method_name is not None:
+        model_file_name = method_name.lower()  
+    else:
+        model_file_name = 'blank'
     model_module = None
-    for submodule in model_submodule:
-        module_path = '.'.join(['recstudio.model', submodule, model_file_name])
-        if importlib.util.find_spec(module_path, __name__):
-            model_module = importlib.import_module(module_path, __name__)
-            break
-    if model_module is None:
-        raise ValueError(f'`method_name` [{method_name}] is not the name of an existing model.')
-    model_class = getattr(model_module, method_name)
+    module_path = '.'.join(['recstudio.model', submodule, model_file_name])
+    if importlib.util.find_spec(module_path, __name__):
+        model_module = importlib.import_module(module_path, __name__)
     dir = os.path.dirname(model_module.__file__)
     conf = dict()
     fname = os.path.join(os.path.dirname(dir), 'feature_selection/config', model_file_name+'.yaml')
     conf = deep_update(conf, parser_yaml(fname))
+    if method_name is not None:
+        model_class = getattr(model_module, method_name)
+    else:
+        model_class = None
+    return model_class, conf
+
+def get_embedding_search(method_name: str):
+    submodule = 'embedding_search'
+    if method_name is not None:
+        model_file_name = method_name.lower()  
+    else:
+        model_file_name = 'blank'
+    model_module = None
+    module_path = '.'.join(['recstudio.model', submodule, model_file_name])
+    if importlib.util.find_spec(module_path, __name__):
+        model_module = importlib.import_module(module_path, __name__)
+    dir = os.path.dirname(model_module.__file__)
+    conf = dict()
+    fname = os.path.join(os.path.dirname(dir), 'embedding_search/config', model_file_name+'.yaml')
+    conf = deep_update(conf, parser_yaml(fname))
+    if method_name is not None:
+        model_class = getattr(model_module, method_name)
+    else:
+        model_class = None
     return model_class, conf
 
 

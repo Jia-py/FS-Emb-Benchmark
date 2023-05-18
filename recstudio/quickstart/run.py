@@ -3,10 +3,10 @@ import pandas as pd
 import nni
 from typing import *
 from recstudio.utils import *
-from recstudio.utils.utils import get_feature_selection
+from recstudio.utils.utils import get_feature_selection, get_embedding_search
 
 def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=None, model_config_path: str=None, data_config_path: str=None, \
-        verbose=True, feature_selection_method='Lasso', use_nni=True,  **kwargs):
+        verbose=True, feature_selection_method='Lasso', embedding_search_method=None, use_nni=True,  **kwargs):
     model_class, model_conf = get_model(model)
 
     if model_config_path is not None:
@@ -23,10 +23,16 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
 
     if kwargs is not None:
         model_conf = deep_update(model_conf, kwargs)
+    
 
     fs_class, fs_conf = get_feature_selection(feature_selection_method)
     model_conf.update(fs_conf)              # update feature selection config
     model_conf['fs']['class'] = fs_class
+    
+
+    eds_class, eds_conf = get_embedding_search(embedding_search_method)
+    model_conf.update(eds_conf)              # update EDS config
+    model_conf['emb']['class'] = eds_class
 
     if use_nni:
         params = nni.get_next_parameter()

@@ -29,7 +29,7 @@ model:
 
 
 train:
-    accelerator: gpu    # [cpu, gpu, dp]
+    accelerator: cpu    # [cpu, gpu, dp]
 
     # ann: {index: 'IVFx,Flat', parameter: ~}  ## 1 HNSWx,Flat; 2 Flat; 3 IVFx,Flat ## {nprobe: 1}  {efSearch: 1}
     ann: ~

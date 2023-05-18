@@ -4,7 +4,14 @@ import torch
 import recstudio.eval as eval
 from .recommender import Recommender
 from typing import Dict, List, Optional, Tuple, Union
+from ..module import ctr
 
+class IdentityFS(torch.nn.Module):
+    def __init__(self, field2token2idx, config, field2type, device) -> None:
+        super().__init__()
+
+    def forward(self, x, current_epoch, fields, batch_data):
+        return x
 
 class BaseRanker(Recommender):
 
@@ -48,7 +55,15 @@ class BaseRanker(Recommender):
 
         # 可以记录一些映射关系
         # 设置feature selection
-        self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
+        if self.config['fs']['class'] is not None:
+            self.feature_selection_layer = self.config['fs']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device) 
+        else:
+            self.feature_selection_layer = IdentityFS(train_data.field2token2idx, self.config, train_data.field2type, self.device)
+        
+        if self.config['emb']['class'] is not None:
+            self.embedding = self.config['emb']['class'](train_data.field2token2idx, self.config, train_data.field2type, self.device)
+        else:
+            self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data)
 
     def _set_data_field(self, data, use_field):
         # token_field = set([k for k, v in data.field2type.items() if v=='token'])
