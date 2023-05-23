@@ -62,7 +62,7 @@ class Recommender(torch.nn.Module, abc.ABC):
     def _set_data_field(self, data):
         pass
 
-    def _init_model(self, train_data, use_field, drop_unused_field=True):
+    def _init_model(self, train_data, use_field, drop_unused_field=False):
         self._set_data_field(train_data, use_field) #TODO(@AngusHuang17): to be considered in a better way
         self.fields = train_data.use_field
         self.frating = train_data.frating
@@ -168,6 +168,7 @@ class Recommender(torch.nn.Module, abc.ABC):
                 self.optimizers = self.feature_selection_layer.set_optimizer(self)
             else:
                 self.optimizers = self._get_optimizers()
+            train_data.selected_features, val_data.selected_features = train_data.field2type.keys(), train_data.field2type.keys()
             self.fit_loop(val_loader)
 
         if self.config['fs']['retrain'] == True:
@@ -178,11 +179,12 @@ class Recommender(torch.nn.Module, abc.ABC):
             if self.config['fs']['retrain_prepare'] == True:
                 # 除去user_id, item_id, rating, 选取前5个特征作为retrain的特征
                 k = 5
-                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(5, train_data.fuid, train_data.fiid)
+                use_fields = self.feature_selection_layer.retrain_prepare_before_ini(k, train_data.fuid, train_data.fiid)
                 if use_fields == None:
                     use_fields = self.fields
                 else:
                     use_fields.append(self.frating)
+                
             if self.config['fs']['reinitialize'] == 'param':
                 # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可
                 self._init_parameter()
@@ -230,7 +232,7 @@ class Recommender(torch.nn.Module, abc.ABC):
             dict: dict of metrics. The key is the name of metrics.
         """
 
-        test_data.drop_feat(self.fields)
+        # test_data.drop_feat(self.fields)
         test_loader = test_data.eval_loader(batch_size=self.config['eval']['batch_size'])
         output = {}
         self.load_checkpoint(os.path.join(self.config['eval']['save_path'], self.ckpt_path))

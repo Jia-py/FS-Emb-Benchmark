@@ -1,12 +1,12 @@
-experimentName: DCN-ml-100k
+experimentName: DCN-ml-1m
 searchSpaceFile: ../search_space/DCN.json
 
-trialCommand: python3 /root/code/FS-Emb-Benchmark/test/test_quickrun.py
+trialCommand: python3 /root/code/FS-Emb-Benchmark/test/test_quickrun.py --model=DCN
 trialCodeDirectory: ../..
 trialGpuNumber: 1
 
 trialConcurrency: 2            # Run 4 trials concurrently.
-maxTrialNumber: 10              # Generate at most 10 trials.
+maxTrialNumber: 20              # Generate at most 10 trials.
 maxExperimentDuration: 100d       # Stop generating trials after 1 hour.
 
 tuner:                          # Configure the tuning algorithm.

@@ -145,3 +145,9 @@ datasets/*
 !datasets/ml-100k/
 
 .recstudio/
+0521.sh
+.gitignore
+recstudio/dataset_demo/ml-1m.zip
+recstudio/dataset_demo/ml-1m/ratings.dat
+recstudio/dataset_demo/ml-1m/users.dat
+recstudio/dataset_demo/ml-1m/movies.dat

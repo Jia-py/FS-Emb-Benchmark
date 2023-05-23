@@ -7,16 +7,12 @@
         "_type": "choice",
         "_value": [[64,64,64],[128,128,128],[256,256,256]]
     },
-    "model/num_layers": {
+    "model/activation": {
         "_type": "choice",
-        "_value": [1,2,3,4,5,6,7,8,9]
+        "_value": ["relu", "tanh", "sigmoid", "leakyrelu", "identity", "dice", "gelu"]
     },
     "model/dropout": {
         "_type": "choice",
         "_value": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
-    },
-    "model/batch_norm": {
-        "_type": "choice",
-        "_value": [true, false]
     }
 }

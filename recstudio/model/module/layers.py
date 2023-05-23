@@ -391,7 +391,7 @@ class AttentionLayer(torch.nn.Module):
         elif self.attention_type == 'multi-head':
             attn_output, attn_output_weight = \
                 self.attn_layer(query, key, value, key_padding_mask,
-                                True, attn_mask, average_attn_weights)
+                                True, attn_mask)
 
         if need_weight:
             return attn_output, attn_output_weight

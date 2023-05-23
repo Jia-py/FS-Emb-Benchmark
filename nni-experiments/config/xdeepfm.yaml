@@ -1,11 +1,11 @@
-experimentName: BPR-ml-100k
-searchSpaceFile: ../search_space/BPR.json
+experimentName: xdeepfm-ml-1m
+searchSpaceFile: ../search_space/xdeepfm.json
 
-trialCommand: python3 run.py -m BPR --mode tune
+trialCommand: python3 /root/code/FS-Emb-Benchmark/test/test_quickrun.py --model=xDeepFM
 trialCodeDirectory: ../..
 trialGpuNumber: 1
 
-trialConcurrency: 4            # Run 4 trials concurrently.
+trialConcurrency: 2            # Run 4 trials concurrently.
 maxTrialNumber: 20              # Generate at most 10 trials.
 maxExperimentDuration: 100d       # Stop generating trials after 1 hour.
 

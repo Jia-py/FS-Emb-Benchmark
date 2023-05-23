@@ -6,7 +6,7 @@ model:
   activation: relu
 
   dropout: 0.5
-  attention_dim: 64
+  attention_dim: 16
   num_attention_layers: 3
   n_head: 2
   

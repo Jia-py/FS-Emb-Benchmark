@@ -1,0 +1,6 @@
+{
+    "train/learning_rate": {
+        "_type": "choice",
+        "_value": [0.0005, 0.001, 0.005, 0.01]
+    }
+}

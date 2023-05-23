@@ -21,7 +21,7 @@ class AutoField(nn.Module):
     def forward(self, x, current_epoch, fields, batch_data):
         fields = list(fields)
         b,f,e = x.shape
-        token_fields = [field for field in fields if self.field2type[field]=='token']
+        # token_fields = [field for field in fields if self.field2type[field]=='token']
         if self.mode == 'retrain':
             return x
         elif self.mode == 'train':
@@ -32,7 +32,7 @@ class AutoField(nn.Module):
         gate_ = torch.ones([1, f, 1]).to(self.device)
         for i in range(f):
             field = fields[i]
-            if self.field2type[field]!='token':
+            if self.field2type[field]!='token' and self.field2type[field]!='token_seq':
                 continue
             gate_[:,i,:] = torch.nn.functional.gumbel_softmax(self.gate[field], tau=self.tau, hard=False, dim=-1)[:,-1].reshape(1,1,1)
         x_ = torch.mul(x, gate_)
@@ -43,7 +43,8 @@ class AutoField(nn.Module):
         fields = [field for field in self.gate]
         gate = torch.concat([self.gate[field] for field in self.gate], dim=0)[:,-1] # token_num, 2
         indices = torch.argsort(gate, descending=True)
-        use_fields = [user_id, item_id]
+        # use_fields = [user_id, item_id]
+        use_fields = []
         tmp_num = 0
         for i in indices:
             if fields[i] in [user_id, item_id]:
@@ -53,6 +54,7 @@ class AutoField(nn.Module):
                 tmp_num += 1
             else:
                 break
+        print('use_fields: ', use_fields)
         return use_fields
 
     def retrain_prepare_after_ini(self):

@@ -1,0 +1,42 @@
+{
+    "train/learning_rate": {
+        "_type": "choice",
+        "_value": [0.0005, 0.001, 0.005, 0.01]
+    },
+    "model/wide": {
+        "_type": "choice",
+        "_value": [true, false]
+    },
+    "model/deep": {
+        "_type": "choice",
+        "_value": [true, false]
+    },
+    "model/mlp_layer": {
+        "_type": "choice",
+        "_value": [[64,64,64],[128,128,128], [128,64],[64,128]]
+    },
+    "model/dropout": {
+        "_type": "choice",
+        "_value": [0.1,0.2,0.3,0.4,0.5,0.6]
+    },
+    "model/num_attention_layers": {
+        "_type": "choice",
+        "_value": [1,2,3,4,5]
+    },
+    "model/n_head": {
+        "_type": "choice",
+        "_value": [1,2,4,8,16]
+    },
+    "model/residual": {
+        "_type": "choice",
+        "_value": [true, false]
+    },
+    "model/residual_project": {
+        "_type": "choice",
+        "_value": [true, false]
+    },
+    "model/layer_norm": {
+        "_type": "choice",
+        "_value": [true, false]
+    }
+}

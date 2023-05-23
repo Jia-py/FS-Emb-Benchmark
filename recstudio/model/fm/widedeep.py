@@ -9,8 +9,8 @@ class WideDeep(BaseRanker):
     def _get_dataset_class():
         return TripletDataset
 
-    def _init_model(self, train_data):
-        super()._init_model(train_data)
+    def _init_model(self, train_data, use_field):
+        super()._init_model(train_data, use_field)
         self.linear = ctr.LinearLayer(self.fields, train_data)
         self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data)
         model_config = self.config['model']
@@ -22,8 +22,10 @@ class WideDeep(BaseRanker):
                         last_activation = False, last_bn=False)
 
     def score(self, batch):
+        batch = {field: batch[field] for field in self.embedding.field2types}
         wide_score = self.linear(batch)
         emb = self.embedding(batch)
+        emb = self.feature_selection_layer(emb, self.nepoch, self.fields, batch)
         deep_score = self.mlp(emb.flatten(1)).squeeze(-1)
         return {'score' : wide_score + deep_score}
 

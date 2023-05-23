@@ -19,8 +19,8 @@ class PNN(BaseRanker):
     def _get_dataset_class():
         return TripletDataset
 
-    def _init_model(self, train_data, drop_unused_field=True):
-        super()._init_model(train_data, drop_unused_field)
+    def _init_model(self, train_data, use_field, drop_unused_field=False):
+        super()._init_model(train_data, use_field, drop_unused_field)
         self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data)
         model_config = self.config['model']
         num_fields = self.embedding.num_features
@@ -52,6 +52,7 @@ class PNN(BaseRanker):
 
     def score(self, batch):
         emb = self.embedding(batch)                                         # B x F x D
+        emb = self.feature_selection_layer(emb, self.nepoch, self.fields, batch)
         if self.config['model']['stack_dim'] is None:
             lz = emb.flatten(1)                                             # B x F*D
             lp = self.prod_layer(emb)                                       # B x num_pairs

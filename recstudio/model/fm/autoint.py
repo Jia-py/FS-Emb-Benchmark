@@ -18,8 +18,8 @@ class AutoInt(BaseRanker):
     def _get_dataset_class():
         return TripletDataset
 
-    def _init_model(self, train_data, drop_unused_field=True):
-        super()._init_model(train_data, drop_unused_field)
+    def _init_model(self, train_data, use_field, drop_unused_field=False):
+        super()._init_model(train_data, use_field, drop_unused_field)
         self.embedding = ctr.Embeddings(self.fields, self.embed_dim, train_data)
         model_config = self.config['model']
         if model_config['wide']:
@@ -45,6 +45,7 @@ class AutoInt(BaseRanker):
 
     def score(self, batch):
         emb = self.embedding(batch)
+        emb = self.feature_selection_layer(emb, self.nepoch, self.fields, batch)
         attn_out = self.int(emb)
         int_score = self.fc(attn_out.flatten(1)).squeeze(-1)
         score = int_score

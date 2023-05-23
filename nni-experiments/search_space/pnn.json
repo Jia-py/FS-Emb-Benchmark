@@ -5,11 +5,11 @@
     },
     "model/mlp_layer": {
         "_type": "choice",
-        "_value": [[64,64,64],[128,128,128],[256,256,256]]
+        "_value": [[64,128,64],[128,128,128],[256,256,256],[64,64,64],[128,256,128],[64,128,256,64], [32,32]]
     },
-    "model/num_layers": {
+    "model/product_type": {
         "_type": "choice",
-        "_value": [1,2,3,4,5,6,7,8,9]
+        "_value": ["inner", "outer"]
     },
     "model/dropout": {
         "_type": "choice",

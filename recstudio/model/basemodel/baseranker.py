@@ -37,7 +37,7 @@ class BaseRanker(Recommender):
     #      non-topk-based metrics is not supported.
     #
 
-    def _init_model(self, train_data, use_field, drop_unused_field=True):
+    def _init_model(self, train_data, use_field, drop_unused_field=False):
         super()._init_model(train_data, use_field, drop_unused_field)
         self.fiid = train_data.fiid
         self.fuid = train_data.fuid
