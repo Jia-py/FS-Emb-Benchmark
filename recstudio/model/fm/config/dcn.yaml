@@ -1,5 +1,5 @@
 model:
-  embed_dim: 10
+  embed_dim: 32
   mlp_layer: [256, 256, 256]
   mlp_layer_0 : [256]
   mlp_layer_1 : [256]

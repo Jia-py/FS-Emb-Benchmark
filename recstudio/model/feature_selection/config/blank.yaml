@@ -1,2 +1,7 @@
 fs:
   name: None
+  retrain: False
+  retrain_prepare: False
+  optimization: Normal
+  retrain_reinitialize: False
+  before_train_prepare: False

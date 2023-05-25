@@ -56,24 +56,6 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         self.ckpt_path = None
 
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        parent_parser.add_argument_group('Recommender')
-        parent_parser.add_argument("--learning_rate", type=float, default=0.001, help='learning rate')
-        parent_parser.add_argument("--learner", type=str, default="adam", help='optimization algorithm')
-        parent_parser.add_argument('--weight_decay', type=float, default=0, help='weight decay coefficient')
-        parent_parser.add_argument('--epochs', type=int, default=50, help='training epochs')
-        parent_parser.add_argument('--batch_size', type=int, default=256, help='training batch size')
-        parent_parser.add_argument('--eval_batch_size', type=int, default=128, help='evaluation batch size')
-        parent_parser.add_argument('--val_n_epoch', type=int, default=1, help='valid epoch interval')
-        parent_parser.add_argument('--embed_dim', type=int, default=64, help='embedding dimension')
-        parent_parser.add_argument('--early_stop_patience', type=int, default=10, help='early stop patience')
-        parent_parser.add_argument('--gpu', type=int, action='append', default=None, help='gpu number')
-        parent_parser.add_argument('--init_method', type=str, default='xavier_normal', help='init method for model')
-        parent_parser.add_argument('--init_range', type=float, help='init range for some methods like normal')
-        parent_parser.add_argument('--seed', type=int, default=2022, help='random seed')
-        return parent_parser
-
     def _add_modules(self, train_data):
         pass
 
@@ -95,8 +77,6 @@ class Recommender(torch.nn.Module, abc.ABC):
                 self.loss_fn = self._get_loss_func(train_data)
             else:
                 self.loss_fn = self._get_loss_func()
-
-
 
     def fit(
         self,
@@ -135,6 +115,8 @@ class Recommender(torch.nn.Module, abc.ABC):
         self.tensorboard_logger.add_text('Configuration/model', dict2markdown_table(self.config, nested=True))
         self.tensorboard_logger.add_text('Configuration/data', dict2markdown_table(train_data.config))
 
+        self.run_mode = run_mode
+
         # 提前了，为了拿到device
         self._accelerate()
         if use_fields is not None:
@@ -145,7 +127,6 @@ class Recommender(torch.nn.Module, abc.ABC):
         self._init_parameter()
 
         # config callback
-        self.run_mode = run_mode
         val_metrics = self.config['eval']['val_metrics']
         cutoff = self.config['eval']['cutoff']
         self.val_check = val_data is not None and val_metrics is not None
@@ -166,6 +147,8 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         if self.config['fs']['before_train_prepare'] == True:
             self.feature_selection_layer.before_train_prepare()
+        if self.config['emb']['before_train_prepare'] == True:
+            self.embedding.before_train_prepare()
 
         if self.config['train']['accelerator'] == 'ddp':
             mp.spawn(self.parallel_training, args=(self.world_size, train_data, val_data),
@@ -178,10 +161,10 @@ class Recommender(torch.nn.Module, abc.ABC):
             else:
                 val_loader = None
             
-            if self.config['fs']['optimization'] == 'DARTS':
+            if self.config['fs']['optimization'] == 'DARTS' or self.config['fs']['optimization'] == 'multiple':
                 self.optimizers = self.feature_selection_layer.set_optimizer(self)
-            elif self.config['fs']['optimization'] == 'multiple':
-                self.optimizers = self.feature_selection_layer.set_optimizer(self)
+            elif self.config['emb']['optimization'] == 'DARTS' or self.config['emb']['optimization'] == 'multiple':
+                self.optimizers = self.embedding.set_optimizer(self)
             else:
                 self.optimizers = self._get_optimizers()
             self.fit_loop(val_loader)
@@ -208,6 +191,27 @@ class Recommender(torch.nn.Module, abc.ABC):
                 self.optimizers = self._get_optimizers()
             if self.config['fs']['retrain_prepare'] == True:
                 self.feature_selection_layer.retrain_prepare_after_ini()
+            self.fit_loop(val_loader)
+        elif self.config['emb']['retrain'] == True:
+            self.logger.info('retrain model')
+            # reinitialize early stop
+            self.callback = self._get_callback(train_data.name)
+            self.logger.info('save_dir:' + self.callback.save_dir)
+            if self.config['emb']['retrain_prepare'] == True:
+                decision = self.embedding.retrain_prepare_before_ini(train_data)
+            if self.config['emb']['reinitialize'] == 'param':
+                # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可
+                self._init_parameter()
+            elif self.config['emb']['reinitialize'] == 'all':
+                self._init_model(train_data, train_data.field2type.keys())
+                if self.config['emb']['retrain_prepare'] == True:
+                    self.embedding.retrain_prepare_after_ini(train_data,decision)
+                self._init_parameter()
+                self._accelerate()
+                self.config['emb']['optimizer'] = 'Normal'
+                # val_data
+                self.optimizers = self._get_optimizers()
+            
             self.fit_loop(val_loader)
         return self.callback.best_ckpt['metric']
 
@@ -315,9 +319,6 @@ class Recommender(torch.nn.Module, abc.ABC):
                 loss_metric = {'train_'+k : v for k, v in outputs}
             self.log_dict(loss_metric)
 
-        if self.val_check and self.run_mode == 'tune':
-            metric = self.logged_metrics[self.val_metric]
-            # nni.report_intermediate_result(metric)
         # TODO: only print when rank=0
         if self.run_mode in ['light', 'tune'] or self.val_check:
             self.logger.info(color_dict(self.logged_metrics, self.run_mode == 'tune'))
@@ -328,19 +329,15 @@ class Recommender(torch.nn.Module, abc.ABC):
         val_metrics = self.config['eval']['val_metrics']
         cutoff = self.config['eval']['cutoff']
         val_metric = eval.get_eval_metrics(val_metrics, cutoff, validation=True)
-        # val_metric = val_metrics if isinstance(val_metrics, list) else [val_metrics]
-        # if cutoff is not None:
-        #     cutoffs = cutoff if isinstance(cutoff, list) else [cutoff]
-        # else:
-        #     cutoffs = []
-        # val_metric = [f'{m}@{cutoff}' if len(eval.get_rank_metrics(m)) > 0 \
-        #     else m for cutoff in cutoffs[:1] for m in val_metric]
         if isinstance(outputs[0][0], List):
-            out = self._test_epoch_end(outputs)
+            out = self._test_epoch_end(outputs, val_metric)
             out = dict(zip(val_metric, out))
         elif isinstance(outputs[0][0], Dict):
-            out = self._test_epoch_end(outputs)
+            out = self._test_epoch_end(outputs, val_metric)
         self.log_dict(out)
+        if self.run_mode == 'tune':
+            nni_result = self._get_nni_format_result(out)
+            nni.report_intermediate_result(nni_result['auc'])
         return out
 
     def test_epoch_end(self, outputs):
@@ -354,14 +351,18 @@ class Recommender(torch.nn.Module, abc.ABC):
         cutoff = self.config['eval']['cutoff']
         test_metric = eval.get_eval_metrics(test_metrics, cutoff, validation=False)
         if isinstance(outputs[0][0], List):
-            out = self._test_epoch_end(outputs)
+            out = self._test_epoch_end(outputs, test_metric)
             out = dict(zip(test_metric, out))
         elif isinstance(outputs[0][0], Dict):
-            out = self._test_epoch_end(outputs)
+            out = self._test_epoch_end(outputs, test_metric)
         self.log_dict(out, tensorboard=False)
+        if self.run_mode == 'tune':
+            nni_result = self._get_nni_format_result(out)
+            # 改为返回auc
+            nni.report_final_result(nni_result['auc'])
         return out
 
-    def _test_epoch_end(self, outputs):
+    def _test_epoch_end(self, outputs, metrics):
         if isinstance(outputs[0][0], List):
             metric, bs = zip(*outputs)
             metric = torch.tensor(metric)
@@ -388,11 +389,19 @@ class Recommender(torch.nn.Module, abc.ABC):
                     self.tensorboard_logger.add_scalar(f"valid/{k}", v, self.logged_metrics['epoch']+1)
         self.logged_metrics.update(metrics)
 
+    def _get_nni_format_result(self, metrics: Dict):
+        nni_result = {}
+        for k, v in metrics.items():
+            nni_result[k] = v.item()
+        # The 'default' metric is used to control behavior of nni
+        nni_result['default'] = list(nni_result.values())[0]
+        return nni_result
+
     def _init_parameter(self):
         init_methods = {
             'xavier_normal': init.xavier_normal_initialization,
             'xavier_uniform': init.xavier_uniform_initialization,
-            'normal': init.normal_initialization,
+            'normal': init.normal_initialization(),
         }
         for name, module in self.named_children():
             if isinstance(module, Recommender):
@@ -422,7 +431,6 @@ class Recommender(torch.nn.Module, abc.ABC):
                 return self.item_feat[data]
 
     def _get_train_loaders(self, train_data, ddp=False) -> List:
-        # TODO: modify loaders in model
         return [train_data.train_loader(
                     batch_size = self.config['train']['batch_size'],
                     shuffle = True,
@@ -498,9 +506,7 @@ class Recommender(torch.nn.Module, abc.ABC):
         Returns:
             torch.optim.optimizer: optimizer according to the config.
         """
-        # '''@nni.variable(nni.choice(0.1, 0.05, 0.01, 0.005, 0.001), name=learning_rate)'''
         learning_rate = lr
-        # '''@nni.variable(nni.choice(0.1, 0.01, 0.001, 0), name=decay)'''
         decay = weight_decay
         if name.lower() == 'adam':
             optimizer = optim.Adam(params, lr=learning_rate, weight_decay=decay)
@@ -512,8 +518,6 @@ class Recommender(torch.nn.Module, abc.ABC):
             optimizer = optim.RMSprop(params, lr=learning_rate, weight_decay=decay)
         elif name.lower() == 'sparse_adam':
             optimizer = optim.SparseAdam(params, lr=learning_rate)
-            # if self.weight_decay > 0:
-            #    self.logger.warning('Sparse Adam cannot argument received argument [{weight_decay}]')
         else:
             optimizer = optim.Adam(params, lr=learning_rate)
         return optimizer
@@ -624,6 +628,9 @@ class Recommender(torch.nn.Module, abc.ABC):
 
         if not (isinstance(optimizers, List) or isinstance(optimizers, Tuple)):
             optimizers = [optimizers]
+        
+        # iter val_dataloader
+        val_iter = iter(val_dataloader)
 
         # iter val_dataloader
         val_iter = iter(val_dataloader)
@@ -681,28 +688,41 @@ class Recommender(torch.nn.Module, abc.ABC):
                     if opt is not None:
                         opt['optimizer'].step()
 
-                if self.config['fs']['optimization'] == 'DARTS':
-                    if batch_idx % self.config['fs']['update_frequency'] == 0:
-                        self.Controller_optimizer.zero_grad()
-                        batch = next(val_iter)
-                        batch = self._to_device(batch, self._parameter_device)
-                        if getattr(self, '_dp', False):     # there are perfermance degrades in DP mode
-                            loss = data_parallel(self, 'training_step', inputs=None, module_kwargs=training_step_args, device_ids=self._gpu_list, output_device=self.device)
-                        else:
-                            loss = self.training_step(batch)
-                        loss.backward()
-                        self.Controller_optimizer.step()
-                
-                if self.config['fs']['name'] == 'LPFS':
-                    p = self.optimizers[-1]['optimizer'].param_groups[0]['params'][0]
-                    thr = self.config['fs']['lambda'] * self.config['train']['learning_rate']
-                    in1 = p.data > thr
-                    in2 = p.data < -thr
-                    in3 = ~(in1 | in2)
-                    p.data[in1] -= thr
-                    p.data[in2] += thr
-                    p.data[in3] = 0
-
+                if self.config['fs']['class']:
+                    if self.config['fs']['optimization'] == 'DARTS':
+                        if batch_idx % self.config['fs']['update_frequency'] == 0:
+                            self.Controller_optimizer.zero_grad()
+                            batch = next(val_iter)
+                            batch = self._to_device(batch, self._parameter_device)
+                            if getattr(self, '_dp', False):     # there are perfermance degrades in DP mode
+                                loss = data_parallel(self, 'training_step', inputs=None, module_kwargs=training_step_args, device_ids=self._gpu_list, output_device=self.device)
+                            else:
+                                loss = self.training_step(batch)
+                            loss.backward()
+                            self.Controller_optimizer.step()
+                    
+                    if self.config['fs']['name'] == 'LPFS':
+                        p = self.optimizers[-1]['optimizer'].param_groups[0]['params'][0]
+                        thr = self.config['fs']['lambda'] * self.config['train']['learning_rate']
+                        in1 = p.data > thr
+                        in2 = p.data < -thr
+                        in3 = ~(in1 | in2)
+                        p.data[in1] -= thr
+                        p.data[in2] += thr
+                        p.data[in3] = 0
+                elif self.config['emb']['class']:
+                    if self.config['emb']['optimization'] == 'DARTS':
+                        if batch_idx % self.config['emb']['update_frequency'] == 0:
+                            self.zero_grad()
+                            batch = next(val_iter)
+                            batch = self._to_device(batch, self._parameter_device)
+                            if getattr(self, '_dp', False):     # there are perfermance degrades in DP mode
+                                loss = data_parallel(self, 'training_step', inputs=None, module_kwargs=training_step_args, device_ids=self._gpu_list, output_device=self.device)
+                            else:
+                                loss = self.training_step(batch)
+                            loss.backward()
+                            
+                            self.Controller_optimizer.step()
             if len(outputs) > 0:
                 output_list.append(outputs)
         return output_list
@@ -767,7 +787,10 @@ class Recommender(torch.nn.Module, abc.ABC):
 
     def _accelerate(self):
         gpu_list = get_gpus(self.config['train']['gpu'])
-        if gpu_list is not None:
+        if self.run_mode == 'tune':
+            self.device = torch.device('cuda') # NNI will assign gpu index automatically
+            self = self._to_device(self, self.device)
+        elif gpu_list is not None:
             self.logger.info(f"GPU id {gpu_list} are selected.")
             if len(gpu_list) == 1:
                 self.device = torch.device("cuda", gpu_list[0])

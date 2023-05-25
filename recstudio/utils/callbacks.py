@@ -100,13 +100,15 @@ class EarlyStopping(object):
                 self._reset_counter(model, epoch, metrics)
                 self.logger.info("{} improved. Best value: {:.4f}".format(
                                 self.monitor, metrics[self.monitor]))
+                self.save_checkpoint(epoch)
             else:
                 self._counter += 1
         else:
             if metrics[self.monitor] <= self.best_value-self.delta:
-                self._reset_counter(model, epoch, metrics[self.monitor])
+                self._reset_counter(model, epoch, metrics)
                 self.logger.info("{} improved. Best value: {:.4f}".format(
                                 self.monitor, metrics[self.monitor]))
+                self.save_checkpoint(epoch)
             else:
                 self._counter += 1
 

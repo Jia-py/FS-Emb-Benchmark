@@ -34,7 +34,7 @@ class DeepIM(BaseRanker):
         emb = self.embedding(batch)
         im_score = self.im(emb).squeeze(-1)
         if self.config['model']['deep']:
-            mlp_score = self.mlp(emb.view(emb.size(0), -1)).squeeze(-1)
+            mlp_score = self.mlp(emb.flatten(1)).squeeze(-1)
             return {'score' : im_score + mlp_score}
         else:
             return{'score': im_score}

@@ -1,0 +1,35 @@
+experimentName: DCN-ml-100k
+searchSpaceFile: ../search_space/DCN.json
+
+trialCommand: python3 /root/code/FS-Emb-Benchmark/test/test_quickrun.py
+trialCodeDirectory: ../..
+trialGpuNumber: 1
+
+trialConcurrency: 2            # Run 4 trials concurrently.
+maxTrialNumber: 10              # Generate at most 10 trials.
+maxExperimentDuration: 100d       # Stop generating trials after 1 hour.
+
+tuner:                          # Configure the tuning algorithm.
+  name: TPE
+  classArgs:
+    optimize_mode: maximize
+
+# assessor:
+#   name: Curvefitting
+#   classArgs:
+#     epoch_num: 200
+#     start_step: 20
+#     threshold: 0.9
+#     gap: 1
+
+# assessor:
+#   name: Medianstop
+#   classArgs:
+#     optimize_mode: maximize
+#     start_step: 200
+
+trainingService:
+  platform: local
+  useActiveGpu: true
+  gpuIndices: 0
+  maxTrialNumberPerGpu: 2

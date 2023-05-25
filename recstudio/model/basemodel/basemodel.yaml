@@ -24,7 +24,7 @@ data:   # params related to dataset
 
 
 model:
-    embed_dim: 16       # embedding dimension for embedding layers, usually for item and user embeddings
+    embed_dim: 32       # embedding dimension for embedding layers, usually for item and user embeddings
     item_bias: False    # whether to add item bias
 
 
@@ -39,7 +39,7 @@ train:
     early_stop_patience: 3
 
     epochs: 100
-    gpu: 1
+    gpu: 
     grad_clip_norm: ~
     init_method: xavier_normal  # [xavier_normal, normal]
     item_batch_size: 1024  # batch size for items to get all item features or get full item scores.
