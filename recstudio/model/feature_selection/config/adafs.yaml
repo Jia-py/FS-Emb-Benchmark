@@ -6,5 +6,5 @@ fs:
   retrain_reinitialize: False
   before_train_prepare: False
   reinitialize: all
-  update_frequency: 5
-  pretrain_epoch_num: 3 # the pretrain epochs mentioned in paper
+  update_frequency: 50
+  pretrain_epoch_num: 0 # the pretrain epochs mentioned in paper

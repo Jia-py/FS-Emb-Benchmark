@@ -6,7 +6,7 @@ trialCodeDirectory: ../..
 trialGpuNumber: 1
 
 trialConcurrency: 2            # Run 4 trials concurrently.
-maxTrialNumber: 20              # Generate at most 10 trials.
+maxTrialNumber: 10             # Generate at most 10 trials.
 maxExperimentDuration: 100d       # Stop generating trials after 1 hour.
 
 tuner:                          # Configure the tuning algorithm.

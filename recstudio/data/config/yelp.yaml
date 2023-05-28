@@ -1,4 +1,4 @@
-url: https://rec.ustc.edu.cn/share/cdc6de70-2f87-11ed-b5db-4d1a26914a90
+url: recstudio:dataset_demo/yelp
 user_id_field: &u user_id:token # TODO: comments for &u and *u
 item_id_field: &i business_id:token
 rating_field: &r stars:float
@@ -12,13 +12,15 @@ inter_feat_field: [review_id:token, *u, *i, *r, *t]
 inter_feat_header: 0
 
 
-user_feat_name: ~ #[yelp_user.csv]
-user_feat_field: [[*u, user_name:token, yelping_since:float, fans:float, average_stars:float]]
+user_feat_name: [yelp_user.csv]
+# user_feat_field: [[*u, user_name:token, yelping_since:float, fans:float, average_stars:float]]
+user_feat_field: [[*u, user_name:token]]
 user_feat_header: 0
 
 
-item_feat_name: ~ #[yelp_item.csv]
-item_feat_field: [[business_id:token, business_name:token, city:token, state:token, postal_code:token, latitude:float, longitude:float, business_stars:float, 'categories:token_seq:", "']]
+item_feat_name: [yelp_item.csv]
+# item_feat_field: [[business_id:token, business_name:token, city:token, state:token, postal_code:token, latitude:float, longitude:float, business_stars:float, 'categories:token_seq:", "']]
+item_feat_field: [[business_id:token, business_name:token, city:token, state:token, postal_code:token, 'categories:token_seq:", "']]
 item_feat_header: 0
 
 
@@ -27,7 +29,7 @@ field_separator: ","
 min_user_inter: 5
 min_item_inter: 5
 field_max_len: ~
-low_rating_threshold: 3
+low_rating_threshold: 3.0
 max_seq_len: 20
 
 # network feature, including social network and knowledge graph, the first two fields are remapped the corresponding features

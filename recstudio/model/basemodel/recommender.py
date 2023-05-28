@@ -177,13 +177,13 @@ class Recommender(torch.nn.Module, abc.ABC):
             self.callback = self._get_callback(train_data.name)
             self.logger.info('save_dir:' + self.callback.save_dir)
             if self.config['fs']['retrain_prepare'] == True:
-                # 除去user_id, item_id, rating, 选取前5个特征作为retrain的特征
-                k = 5
+                # 算上float和rating以及选择的token特征，一共k个
+                k = 12
                 use_fields = self.feature_selection_layer.retrain_prepare_before_ini(k, train_data.fuid, train_data.fiid)
                 if use_fields == None:
                     use_fields = self.fields
-                else:
-                    use_fields.append(self.frating)
+                # else:
+                #     use_fields.append(self.frating)
                 
             if self.config['fs']['reinitialize'] == 'param':
                 # 因为在feature_selection init时的参数不会被该函数初始化，直接初始化其他所用参数即可

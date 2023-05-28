@@ -1,0 +1,331 @@
+[2023-05-27 14:50:07] INFO Log saved in /root/code/FS-Emb-Benchmark/FM/yelp/2023-05-27-14-50-07-225320.log.
+[2023-05-27 14:50:07] INFO (recstudio/MainThread) Log saved in /root/code/FS-Emb-Benchmark/FM/yelp/2023-05-27-14-50-07-225320.log.
+[2023-05-27 14:50:07] INFO Load dataset from cache.
+[2023-05-27 14:50:07] INFO (recstudio/MainThread) Load dataset from cache.
+[2023-05-27 14:50:34] INFO 
+Dataset Info: 
+
+==============================================================================================================================
+item information: 
+field         business_id   business_name city          state         postal_code   categories    
+type          token         token         token         token         token         token_seq     
+##            112395        83408         1181          18            2853          103732        
+==============================================================================================================================
+user information: 
+field         user_id       user_name     
+type          token         token         
+##            277632        31148         
+==============================================================================================================================
+interaction information: 
+field         review_id     user_id       business_id   stars         date          
+type          token         token         token         float         float         
+##            4250484       277632        112395        -             -             
+==============================================================================================================================
+Total Interactions: 4045641
+Sparsity: 0.999870
+==============================================================================================================================
+
+[2023-05-27 14:50:34] INFO (recstudio/MainThread) 
+Dataset Info: 
+
+==============================================================================================================================
+item information: 
+field         business_id   business_name city          state         postal_code   categories    
+type          token         token         token         token         token         token_seq     
+##            112395        83408         1181          18            2853          103732        
+==============================================================================================================================
+user information: 
+field         user_id       user_name     
+type          token         token         
+##            277632        31148         
+==============================================================================================================================
+interaction information: 
+field         review_id     user_id       business_id   stars         date          
+type          token         token         token         float         float         
+##            4250484       277632        112395        -             -             
+==============================================================================================================================
+Total Interactions: 4045641
+Sparsity: 0.999870
+==============================================================================================================================
+
+[2023-05-27 14:50:34] INFO 
+Model Config: 
+
+data:
+	binarized_rating_thres=3.0
+	fm_eval=False
+	neg_count=0
+	sampler=None
+	shuffle=True
+	split_mode=user_entry
+	split_ratio=[0.8, 0.1, 0.1]
+	fmeval=True
+	low_rating_thres=0.0
+eval:
+	batch_size=128
+	cutoff=[5, 10, 20]
+	val_metrics=['auc', 'logloss']
+	val_n_epoch=1
+	test_metrics=['auc', 'logloss']
+	topk=100
+	save_path=./saved/
+fs:
+	name=AutoField
+	retrain=True
+	retrain_prepare=True
+	optimization=DARTS
+	retrain_reinitialize=True
+	before_train_prepare=False
+	reinitialize=all
+	update_frequency=5
+	class=<class 'recstudio.model.feature_selection.autofield.AutoField'>
+model:
+	embed_dim=16
+	item_bias=False
+train:
+	accelerator=gpu
+	ann=None
+	batch_size=512
+	early_stop_mode=max
+	early_stop_patience=5
+	epochs=2
+	gpu=1
+	grad_clip_norm=None
+	init_method=xavier_normal
+	item_batch_size=1024
+	learner=adam
+	learning_rate=0.0005
+	num_threads=10
+	sampling_method=none
+	sampler=uniform
+	negative_count=0
+	excluding_hist=False
+	scheduler=None
+	seed=None
+	weight_decay=0.0
+	tensorboard_path=None
+[2023-05-27 14:50:34] INFO (recstudio/MainThread) 
+Model Config: 
+
+data:
+	binarized_rating_thres=3.0
+	fm_eval=False
+	neg_count=0
+	sampler=None
+	shuffle=True
+	split_mode=user_entry
+	split_ratio=[0.8, 0.1, 0.1]
+	fmeval=True
+	low_rating_thres=0.0
+eval:
+	batch_size=128
+	cutoff=[5, 10, 20]
+	val_metrics=['auc', 'logloss']
+	val_n_epoch=1
+	test_metrics=['auc', 'logloss']
+	topk=100
+	save_path=./saved/
+fs:
+	name=AutoField
+	retrain=True
+	retrain_prepare=True
+	optimization=DARTS
+	retrain_reinitialize=True
+	before_train_prepare=False
+	reinitialize=all
+	update_frequency=5
+	class=<class 'recstudio.model.feature_selection.autofield.AutoField'>
+model:
+	embed_dim=16
+	item_bias=False
+train:
+	accelerator=gpu
+	ann=None
+	batch_size=512
+	early_stop_mode=max
+	early_stop_patience=5
+	epochs=2
+	gpu=1
+	grad_clip_norm=None
+	init_method=xavier_normal
+	item_batch_size=1024
+	learner=adam
+	learning_rate=0.0005
+	num_threads=10
+	sampling_method=none
+	sampler=uniform
+	negative_count=0
+	excluding_hist=False
+	scheduler=None
+	seed=None
+	weight_decay=0.0
+	tensorboard_path=None
+[2023-05-27 14:50:34] INFO GPU id [0] are selected.
+[2023-05-27 14:50:34] INFO (recstudio/MainThread) GPU id [0] are selected.
+[2023-05-27 14:50:34] WARNING No retriever is used, topk metrics is not supported.
+[2023-05-27 14:50:34] WARNING (recstudio/MainThread) No retriever is used, topk metrics is not supported.
+[2023-05-27 14:50:41] INFO save_dir:./saved/
+[2023-05-27 14:50:41] INFO (recstudio/MainThread) save_dir:./saved/
+[2023-05-27 14:50:41] INFO FM(
+  (loss_fn): BCEWithLogitLoss()
+  (feature_selection_layer): AutoField(
+    (gate): ParameterDict(
+        (business_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (business_name): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (categories): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (city): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (postal_code): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (review_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (state): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (user_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (user_name): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+    )
+  )
+  (linear): LinearLayer(
+    bias=True
+    (embeddings): ModuleDict(
+      (user_id): Embedding(277632, 1, padding_idx=0)
+      (review_id): Embedding(4250484, 1, padding_idx=0)
+      (user_name): Embedding(31148, 1, padding_idx=0)
+      (postal_code): Embedding(2853, 1, padding_idx=0)
+      (categories): Embedding(103732, 1, padding_idx=0)
+      (state): Embedding(18, 1, padding_idx=0)
+      (business_name): Embedding(83408, 1, padding_idx=0)
+      (city): Embedding(1181, 1, padding_idx=0)
+      (business_id): Embedding(112395, 1, padding_idx=0)
+      (date): DenseEmbedding(
+        embedding_dim=1, bias=False, batch_norm=True
+        (batch_norm_layer): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (weight): Linear(in_features=1, out_features=1, bias=False)
+      )
+    )
+    (seq_pooling_layer): SeqPoolingLayer(pooling_type=mean, keepdim=False)
+  )
+  (embedding): Embeddings(
+    num_features=10, embed_dim=16, reduction=mean, share_dense_embedding=True
+    (embeddings): ModuleDict(
+      (user_id): Embedding(277632, 16, padding_idx=0)
+      (review_id): Embedding(4250484, 16, padding_idx=0)
+      (user_name): Embedding(31148, 16, padding_idx=0)
+      (postal_code): Embedding(2853, 16, padding_idx=0)
+      (categories): Embedding(103732, 16, padding_idx=0)
+      (state): Embedding(18, 16, padding_idx=0)
+      (business_name): Embedding(83408, 16, padding_idx=0)
+      (city): Embedding(1181, 16, padding_idx=0)
+      (business_id): Embedding(112395, 16, padding_idx=0)
+      (date): DenseEmbedding(
+        embedding_dim=16, bias=False, batch_norm=True
+        (batch_norm_layer): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (weight): Linear(in_features=1, out_features=16, bias=False)
+      )
+    )
+    (seq_pooling_layer): SeqPoolingLayer(pooling_type=mean, keepdim=False)
+  )
+  (fm_layer): FMLayer(reduction=sum)
+)
+[2023-05-27 14:50:41] INFO (recstudio/MainThread) FM(
+  (loss_fn): BCEWithLogitLoss()
+  (feature_selection_layer): AutoField(
+    (gate): ParameterDict(
+        (business_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (business_name): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (categories): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (city): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (postal_code): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (review_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (state): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (user_id): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+        (user_name): Parameter containing: [torch.cuda.FloatTensor of size 1x2 (GPU 0)]
+    )
+  )
+  (linear): LinearLayer(
+    bias=True
+    (embeddings): ModuleDict(
+      (user_id): Embedding(277632, 1, padding_idx=0)
+      (review_id): Embedding(4250484, 1, padding_idx=0)
+      (user_name): Embedding(31148, 1, padding_idx=0)
+      (postal_code): Embedding(2853, 1, padding_idx=0)
+      (categories): Embedding(103732, 1, padding_idx=0)
+      (state): Embedding(18, 1, padding_idx=0)
+      (business_name): Embedding(83408, 1, padding_idx=0)
+      (city): Embedding(1181, 1, padding_idx=0)
+      (business_id): Embedding(112395, 1, padding_idx=0)
+      (date): DenseEmbedding(
+        embedding_dim=1, bias=False, batch_norm=True
+        (batch_norm_layer): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (weight): Linear(in_features=1, out_features=1, bias=False)
+      )
+    )
+    (seq_pooling_layer): SeqPoolingLayer(pooling_type=mean, keepdim=False)
+  )
+  (embedding): Embeddings(
+    num_features=10, embed_dim=16, reduction=mean, share_dense_embedding=True
+    (embeddings): ModuleDict(
+      (user_id): Embedding(277632, 16, padding_idx=0)
+      (review_id): Embedding(4250484, 16, padding_idx=0)
+      (user_name): Embedding(31148, 16, padding_idx=0)
+      (postal_code): Embedding(2853, 16, padding_idx=0)
+      (categories): Embedding(103732, 16, padding_idx=0)
+      (state): Embedding(18, 16, padding_idx=0)
+      (business_name): Embedding(83408, 16, padding_idx=0)
+      (city): Embedding(1181, 16, padding_idx=0)
+      (business_id): Embedding(112395, 16, padding_idx=0)
+      (date): DenseEmbedding(
+        embedding_dim=16, bias=False, batch_norm=True
+        (batch_norm_layer): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (weight): Linear(in_features=1, out_features=16, bias=False)
+      )
+    )
+    (seq_pooling_layer): SeqPoolingLayer(pooling_type=mean, keepdim=False)
+  )
+  (fm_layer): FMLayer(reduction=sum)
+)
+[2023-05-27 14:50:41] INFO GPU id [0] are selected.
+[2023-05-27 14:50:41] INFO (recstudio/MainThread) GPU id [0] are selected.
+[2023-05-27 14:52:58] INFO Training: Epoch=  0 [logloss=0.4045 auc=0.7732 train_loss_0=0.4220]
+[2023-05-27 14:52:58] INFO (recstudio/MainThread) Training: Epoch=  0 [logloss=0.4045 auc=0.7732 train_loss_0=0.4220]
+[2023-05-27 14:52:58] INFO Train time: 126.80206s. Valid time: 10.14690s. GPU RAM: 1.82/9.77 GB
+[2023-05-27 14:52:58] INFO (recstudio/MainThread) Train time: 126.80206s. Valid time: 10.14690s. GPU RAM: 1.82/9.77 GB
+[2023-05-27 14:52:58] INFO auc improved. Best value: 0.7732
+[2023-05-27 14:52:58] INFO (recstudio/MainThread) auc improved. Best value: 0.7732
+[2023-05-27 14:52:59] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:52:59] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:55:15] INFO Training: Epoch=  1 [logloss=0.4099 auc=0.7748 train_loss_0=0.3453]
+[2023-05-27 14:55:15] INFO (recstudio/MainThread) Training: Epoch=  1 [logloss=0.4099 auc=0.7748 train_loss_0=0.3453]
+[2023-05-27 14:55:15] INFO Train time: 125.48017s. Valid time: 10.22991s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:55:15] INFO (recstudio/MainThread) Train time: 125.48017s. Valid time: 10.22991s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:55:15] INFO auc improved. Best value: 0.7748
+[2023-05-27 14:55:15] INFO (recstudio/MainThread) auc improved. Best value: 0.7748
+[2023-05-27 14:55:17] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:55:17] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:55:18] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:55:18] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:55:18] INFO retrain model
+[2023-05-27 14:55:18] INFO (recstudio/MainThread) retrain model
+[2023-05-27 14:55:18] INFO save_dir:./saved/
+[2023-05-27 14:55:18] INFO (recstudio/MainThread) save_dir:./saved/
+use_fields:  ['stars', 'date', 'user_id', 'user_name', 'postal_code', 'business_name', 'state', 'city', 'categories']
+[2023-05-27 14:55:18] WARNING No retriever is used, topk metrics is not supported.
+[2023-05-27 14:55:18] WARNING (recstudio/MainThread) No retriever is used, topk metrics is not supported.
+[2023-05-27 14:55:18] INFO GPU id [0] are selected.
+[2023-05-27 14:55:18] INFO (recstudio/MainThread) GPU id [0] are selected.
+[2023-05-27 14:56:07] INFO Training: Epoch=  0 [logloss=0.3914 auc=0.7922 train_loss_0=0.4081]
+[2023-05-27 14:56:07] INFO (recstudio/MainThread) Training: Epoch=  0 [logloss=0.3914 auc=0.7922 train_loss_0=0.4081]
+[2023-05-27 14:56:07] INFO Train time: 42.30926s. Valid time: 7.04123s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:56:07] INFO (recstudio/MainThread) Train time: 42.30926s. Valid time: 7.04123s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:56:07] INFO auc improved. Best value: 0.7922
+[2023-05-27 14:56:07] INFO (recstudio/MainThread) auc improved. Best value: 0.7922
+[2023-05-27 14:56:07] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:56:07] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:56:58] INFO Training: Epoch=  1 [logloss=0.3931 auc=0.7961 train_loss_0=0.3416]
+[2023-05-27 14:56:58] INFO (recstudio/MainThread) Training: Epoch=  1 [logloss=0.3931 auc=0.7961 train_loss_0=0.3416]
+[2023-05-27 14:56:58] INFO Train time: 43.69358s. Valid time: 7.02355s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:56:58] INFO (recstudio/MainThread) Train time: 43.69358s. Valid time: 7.02355s. GPU RAM: 2.33/9.77 GB
+[2023-05-27 14:56:58] INFO auc improved. Best value: 0.7961
+[2023-05-27 14:56:58] INFO (recstudio/MainThread) auc improved. Best value: 0.7961
+[2023-05-27 14:56:58] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:56:58] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:56:58] INFO Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:56:58] INFO (recstudio/MainThread) Best model checkpoint saved in ./saved/FM/yelp/2023-05-27-14-50-07-225320.ckpt.
+[2023-05-27 14:57:06] INFO Testing:  [logloss=0.3944 auc=0.7947]
+[2023-05-27 14:57:06] INFO (recstudio/MainThread) Testing:  [logloss=0.3944 auc=0.7947]

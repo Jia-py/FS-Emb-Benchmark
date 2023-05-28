@@ -2,14 +2,17 @@ model:
   wide: True
 
   deep: True
-  mlp_layer: [128, 64]
+  mlp_layer: [64, 64, 64]
   activation: relu
 
-  dropout: 0.5
+  dropout: 0.3
   attention_dim: 16
-  num_attention_layers: 3
-  n_head: 2
+  num_attention_layers: 5
+  n_head: 16
   
   residual: True
   residual_project: True
-  layer_norm: False
+  layer_norm: True
+
+train:
+  learning_rate: 0.001

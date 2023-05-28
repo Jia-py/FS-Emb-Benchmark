@@ -267,8 +267,11 @@ class TripletDataset(Dataset):
             types_of_fields.append(s[1])
             if len(s) == 3:
                 seq_seperators[s[0]] = s[2].split('"')[1]
-
-        dtype = [np.float64 if _ == 'float' else str for _ in types_of_fields]
+        
+        if self.config['dtype']:
+            dtype = self.config['dtype']
+        else:
+            dtype = [np.float64 if _ == 'float' else str for _ in types_of_fields]
         if update_dict:
             self.field2type.update(dict(zip(fields, types_of_fields)))
 

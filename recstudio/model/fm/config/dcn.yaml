@@ -1,7 +1,10 @@
 model:
   embed_dim: 16
-  mlp_layer: [256, 256, 256]
+  mlp_layer: [128,128,128]
   activation: relu
-  num_layers: 6
-  dropout: 0.5
-  batch_norm: True
+  num_layers: 2
+  dropout: 0
+  batch_norm: False
+
+train:
+  learning_rate: 0.001

@@ -1,7 +1,10 @@
 model:
   product_type: inner
-  mlp_layer: [128, 64]
+  mlp_layer: [64,128,256,64]
   activation: relu
-  dropout: 0.5
+  dropout: 0
   batch_norm: False
   stack_dim: 2
+
+train:
+  learning_rate: 0.01

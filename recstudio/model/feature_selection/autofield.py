@@ -44,12 +44,13 @@ class AutoField(nn.Module):
         gate = torch.concat([self.gate[field] for field in self.gate], dim=0)[:,-1] # token_num, 2
         indices = torch.argsort(gate, descending=True)
         # use_fields = [user_id, item_id]
-        use_fields = []
-        tmp_num = 0
+        use_fields = [field for field in self.field2type if self.field2type[field]!='token' and self.field2type[field]!='token_seq']
+        tmp_num = len(use_fields)
         for i in indices:
-            if fields[i] in [user_id, item_id]:
-                continue
-            elif tmp_num < k:
+            # if fields[i] in [user_id, item_id]:
+            #     continue
+            # elif tmp_num < k:
+            if tmp_num < k:
                 use_fields.append(fields[i])
                 tmp_num += 1
             else:

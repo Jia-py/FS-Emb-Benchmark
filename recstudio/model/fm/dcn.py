@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from recstudio.data.dataset import TripletDataset
 from ..basemodel import BaseRanker
 from ..loss_func import BCEWithLogitLoss

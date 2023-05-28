@@ -26,7 +26,7 @@ class optFS(nn.Module):
     def forward(self, x, current_epoch, fields, batch_data):
         fields = list(fields)
         b,f,e = x.shape
-        token_fields = [field for field in fields if self.field2type[field]=='token']
+        token_fields = [field for field in fields if self.field2type[field]=='token' or self.field2type[field]=='token_seq']
         gc = torch.concat([self.gate[field] for field in token_fields], dim=0) # feature_val_num,1
         t = 200 * (current_epoch / self.epochs)
         if self.mode == 'train':

@@ -1,5 +1,8 @@
 model:
   embed_dim: 16
-  mlp_layer: [256, 256, 256]
-  activation: tanh
-  dropout: 0.3
+  mlp_layer: [64,64,64]
+  activation: relu
+  dropout: 0.2
+
+train: 
+  learning_rate: 0.0005

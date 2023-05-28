@@ -1,0 +1,45 @@
+url: /root/autodl-tmp/avazu
+user_id_field: &u device_id:token # TODO: comments for &u and *u
+item_id_field: &i item_id:token
+rating_field: &r label:float
+time_field: &t timestamp:float
+time_format: ~
+
+
+encoding_method:
+inter_feat_name: avazu.inter
+inter_feat_field: [*u, *i, *r, *t, 'C1:token', 'banner_pos:token', 'site_id:token', 'site_domain:token', 'site_category:token', 'app_id:token', 'app_domain:token',
+       'app_category:token','device_model:token', 'device_type:token', 'device_conn_type:token',
+        'C14:token', 'C15:token', 'C16:token', 'C17:token', 'C18:token',
+       'C19:token', 'C20:token', 'C21:token']
+dtype: ['object','float32','int8','int32','int16','int8','object','object','object','object','object','object','object','object',
+        'int8','int8','int16','int16','int16','int16','int8','int16','int32','int16']
+inter_feat_header: ~
+
+
+user_feat_name: ~
+user_feat_field: [[*u]]
+user_feat_header: ~
+
+
+item_feat_name: ~
+item_feat_field: [[*i]]
+item_feat_header: ~
+
+
+use_fields: ~
+field_separator: "\t"
+min_user_inter: 5
+min_item_inter: 5
+field_max_len: ~
+low_rating_thres: 3.0
+max_seq_len: 20
+
+# network feature, including social network and knowledge graph, the first two fields are remapped the corresponding features
+network_feat_name: ~ #[[social.txt], [ml-100k.kg, ml-100k.link]]
+mapped_feat_field: [*u, *i]
+network_feat_field: ~
+network_feat_header: [~, ~]
+
+
+save_cache: False # whether to save processed dataset to cache.

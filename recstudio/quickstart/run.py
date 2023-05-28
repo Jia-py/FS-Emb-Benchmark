@@ -67,7 +67,8 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     '''
     use_fields = None
     if feature_selection_method in ['Lasso', 'GBDT']:
-        k = 5
+        # 算上float和rating以及选择的token特征，一共k个
+        k = 12
         use_fields = machine_learning_selection(datasets, feature_selection_method, k)
 
 
@@ -98,16 +99,21 @@ def machine_learning_selection(datasets, feature_selection_method, k):
         field_importance = abs(lasso.coef_)
         # 取出importance最大的k个field
         field_importance = field_importance.argsort()[::-1]
-        use_fields = [datasets[0].frating, datasets[0].fuid, datasets[0].fiid]
-        tmp_num = 0
+        # use_fields = [datasets[0].frating, datasets[0].fuid, datasets[0].fiid]
+        use_fields = [datasets[0].frating]
+        tmp_num = len(use_fields)
         for i in field_importance:
-            if fields_lis[i] in [datasets[0].fuid, datasets[0].fiid]:
-                continue
-            elif tmp_num < k:
+            # if fields_lis[i] in [datasets[0].fuid, datasets[0].fiid]:
+            #     continue
+            # elif tmp_num < k:
+            if tmp_num < k:
                 use_fields.append(fields_lis[i])
                 tmp_num += 1
             else:
                 break
+        print('************************')
+        print('use_fields:', use_fields)
+        print('************************')
         return use_fields
     elif feature_selection_method == 'GBDT':
         from sklearn.ensemble import GradientBoostingRegressor
@@ -117,14 +123,19 @@ def machine_learning_selection(datasets, feature_selection_method, k):
         field_importance = abs(gbdt.feature_importances_)
         # 取出importance最大的k个field
         field_importance = field_importance.argsort()[::-1]
-        use_fields = [datasets[0].frating, datasets[0].fuid, datasets[0].fiid]
-        tmp_num = 0
+        # use_fields = [datasets[0].frating, datasets[0].fuid, datasets[0].fiid]
+        use_fields = [datasets[0].frating]
+        tmp_num = len(use_fields)
         for i in field_importance:
-            if fields_lis[i] in [datasets[0].fuid, datasets[0].fiid]:
-                continue
-            elif tmp_num < k:
+            # if fields_lis[i] in [datasets[0].fuid, datasets[0].fiid]:
+            #     continue
+            # elif tmp_num < k:
+            if tmp_num < k:
                 use_fields.append(fields_lis[i])
                 tmp_num += 1
             else:
                 break
+        print('************************')
+        print('use_fields:', use_fields)
+        print('************************')
         return use_fields

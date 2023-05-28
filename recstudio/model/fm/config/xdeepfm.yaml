@@ -1,7 +1,10 @@
 model:
-  embed_dim: 10
-  cin_layer_size: [100, 100, 100]
-  mlp_layer: [128, 128, 128]
-  activation: relu
-  dropout: 0.2
+  embed_dim: 16
+  cin_layer_size: [200,200,200]
+  mlp_layer: [64,64,64]
+  activation: gelu
+  dropout: 0.3
   direct: False
+
+train:
+  learning_rate: 0.0005
