@@ -38,7 +38,7 @@ train:
     early_stop_mode: max
     early_stop_patience: 5
 
-    epochs: 2
+    epochs: 20
     gpu: 1
     grad_clip_norm: ~
     init_method: xavier_normal  # [xavier_normal, normal]
@@ -68,8 +68,8 @@ train:
 eval:
     batch_size: 128
     cutoff: [5, 10, 20]
-    val_metrics: [ndcg, recall]
+    val_metrics: [ndcg, recall, auc]
     val_n_epoch: 1
-    test_metrics: [recall, precision, map, ndcg, mrr, hit]
+    test_metrics: [recall, precision, map, ndcg, mrr, hit, auc]
     topk: 100
     save_path: './saved/'

@@ -4,7 +4,7 @@ model:
   activation: relu
   num_layers: 2
   dropout: 0
-  batch_norm: False
+  batch_norm: True
 
 train:
   learning_rate: 0.001

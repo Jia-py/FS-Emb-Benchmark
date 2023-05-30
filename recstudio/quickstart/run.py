@@ -45,7 +45,7 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     if data_config_path is not None:
         if isinstance(data_config_path, str):
             # load dataset config from file
-            conf = parser_yaml(data_config)
+            conf = parser_yaml(data_config_path)
             data_conf.update(conf)
         else:
             raise TypeError(f"expecting `data_config_path` to be str, while get {type(data_config_path)} instead.")
@@ -57,15 +57,20 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
         else:
             raise TypeError(f"expecting `data_config` to be Dict, while get {type(data_config)} instead.")
 
-    data_conf.update(model_conf['data'])    # update model-specified config
+    # data_conf.update(model_conf['data'])    # update model-specified config
+    model_conf['data'].update(data_conf)            # update data-specified config
 
     datasets = dataset_class(name=dataset, config=data_conf).build(**model_conf['data'])
+    # datasets = dataset_class(name=dataset, config=data_conf).build(**data_conf)
     logger.info(f"{datasets[0]}")
     logger.info(f"\n{set_color('Model Config', 'green')}: \n\n" + color_dict_normal(model_conf, False))
     '''
     some machine learning algorithms to select features
     '''
-    use_fields = None
+    if 'use_fields' in datasets[0].config:
+        use_fields = datasets[0].config['use_fields']
+    else:
+        use_fields = None
     if feature_selection_method in ['Lasso', 'GBDT']:
         # 算上float和rating以及选择的token特征，一共k个
         k = 12

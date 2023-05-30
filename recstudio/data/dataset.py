@@ -56,8 +56,8 @@ class TripletDataset(Dataset):
             self._load_all_data(data_dir, self.config['field_separator'])
             # first factorize user id and item id, and then filtering to
             # determine the valid user set and item set
-            self._filter(self.config['min_user_inter'],
-                         self.config['min_item_inter'])
+            # self._filter(self.config['min_user_inter'],
+            #              self.config['min_item_inter'])
             self._float_preprocess()
             self._map_all_ids()
             self._post_preprocess()
@@ -268,10 +268,7 @@ class TripletDataset(Dataset):
             if len(s) == 3:
                 seq_seperators[s[0]] = s[2].split('"')[1]
         
-        if self.config['dtype']:
-            dtype = self.config['dtype']
-        else:
-            dtype = [np.float64 if _ == 'float' else str for _ in types_of_fields]
+        dtype = [np.float64 if _ == 'float' else str for _ in types_of_fields]
         if update_dict:
             self.field2type.update(dict(zip(fields, types_of_fields)))
 
@@ -282,7 +279,7 @@ class TripletDataset(Dataset):
 
         feat = pd.read_csv(feat_path, sep=sep, header=header, names=fields,
                            dtype=dict(zip(fields, dtype)), engine='python', index_col=False,
-                           encoding=self.config['encoding_method'])[list(fields)]
+                           encoding=self.config['encoding_method'],nrows=100000)[list(fields)]
         # seq_sep = self.config['seq_separator']
         for i, (col, t) in enumerate(zip(fields, types_of_fields)):
             if not t.endswith('seq'):
