@@ -1,5 +1,5 @@
 model:
-  embed_dim: 16
+  embed_dim: 8
   cin_layer_size: [200,200,200]
   mlp_layer: [64,64,64]
   activation: gelu

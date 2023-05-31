@@ -50,4 +50,4 @@ network_feat_field: ~
 network_feat_header: [~, ~]
 
 
-save_cache: False # whether to save processed dataset to cache.
+save_cache: false # whether to save processed dataset to cache.

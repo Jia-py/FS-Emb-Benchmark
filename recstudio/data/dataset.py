@@ -279,7 +279,7 @@ class TripletDataset(Dataset):
 
         feat = pd.read_csv(feat_path, sep=sep, header=header, names=fields,
                            dtype=dict(zip(fields, dtype)), engine='python', index_col=False,
-                           encoding=self.config['encoding_method'],nrows=100000)[list(fields)]
+                           encoding=self.config['encoding_method'])[list(fields)]
         # seq_sep = self.config['seq_separator']
         for i, (col, t) in enumerate(zip(fields, types_of_fields)):
             if not t.endswith('seq'):

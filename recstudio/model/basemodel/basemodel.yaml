@@ -24,7 +24,7 @@ data:   # params related to dataset
 
 
 model:
-    embed_dim: 16       # embedding dimension for embedding layers, usually for item and user embeddings
+    embed_dim: 8       # embedding dimension for embedding layers, usually for item and user embeddings
     item_bias: False    # whether to add item bias
 
 
@@ -42,7 +42,7 @@ train:
     gpu: 1
     grad_clip_norm: ~
     init_method: xavier_normal  # [xavier_normal, normal]
-    item_batch_size: 1024  # batch size for items to get all item features or get full item scores.
+    item_batch_size: 512  # batch size for items to get all item features or get full item scores.
     learner: adam
     learning_rate: 0.001
     num_threads: 10
@@ -68,8 +68,8 @@ train:
 eval:
     batch_size: 128
     cutoff: [5, 10, 20]
-    val_metrics: [ndcg, recall, auc]
+    val_metrics: [ndcg, recall]
     val_n_epoch: 1
-    test_metrics: [recall, precision, map, ndcg, mrr, hit, auc]
+    test_metrics: [recall, precision, map, ndcg, mrr, hit]
     topk: 100
     save_path: './saved/'

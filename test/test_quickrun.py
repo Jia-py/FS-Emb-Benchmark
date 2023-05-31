@@ -4,7 +4,7 @@ from recstudio import quickstart
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='FM', help='model name: DCN, PNN, AutoInt, FM, DeepFM, WideDeep, xDeepFM')
+parser.add_argument('--model', type=str, default='DCN', help='model name: DCN, PNN, AutoInt, FM, DeepFM, WideDeep, xDeepFM')
 parser.add_argument('--dataset', type=str, default='avazu', help='dataset name: ml-100k, ml-1m, yelp')
 parser.add_argument('--feature_selection_method', type=str, default='No_Selection', help='feature selection method, AutoField, AdaFS, Lasso, LPFS, optFS, GBDT, No_Selection')
 parser.add_argument('--run_mode', type=str, default='light', help='tune, light')

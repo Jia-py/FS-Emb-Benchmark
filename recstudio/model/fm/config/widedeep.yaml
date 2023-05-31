@@ -1,6 +1,6 @@
 model:
   batch_norm: False
-  embed_dim: 16
+  embed_dim: 8
   mlp_layer: [128,128,128]
   activation: dice
   dropout: 0.1
