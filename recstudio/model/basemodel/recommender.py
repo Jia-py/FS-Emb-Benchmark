@@ -178,7 +178,7 @@ class Recommender(torch.nn.Module, abc.ABC):
             self.logger.info('save_dir:' + self.callback.save_dir)
             if self.config['fs']['retrain_prepare'] == True:
                 # 算上float和rating以及选择的token特征，一共k个
-                k = 12
+                k = 9
                 use_fields = self.feature_selection_layer.retrain_prepare_before_ini(k, train_data.fuid, train_data.fiid)
                 if use_fields == None:
                     use_fields = self.fields

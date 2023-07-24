@@ -1,0 +1,174 @@
+[2023-05-30 14:09:12] INFO Log saved in /root/code/FS-Emb-Benchmark/DCN/yelp/2023-05-30-14-09-12-371613.log.
+[2023-05-30 14:09:12] INFO Load dataset from cache.
+[2023-05-30 14:09:42] INFO 
+Dataset Info: 
+
+==============================================================================================================================
+item information: 
+field         business_id   business_name city          state         postal_code   categories    
+type          token         token         token         token         token         token_seq     
+##            112395        83408         1181          18            2853          103732        
+==============================================================================================================================
+user information: 
+field         user_id       user_name     
+type          token         token         
+##            277632        31148         
+==============================================================================================================================
+interaction information: 
+field         review_id     user_id       business_id   stars         date          
+type          token         token         token         float         float         
+##            4250484       277632        112395        -             -             
+==============================================================================================================================
+Total Interactions: 4045641
+Sparsity: 0.999870
+==============================================================================================================================
+
+[2023-05-30 14:09:42] INFO 
+Model Config: 
+
+data:
+	binarized_rating_thres=3.0
+	fm_eval=False
+	neg_count=0
+	sampler=None
+	shuffle=True
+	split_mode=user_entry
+	split_ratio=[0.8, 0.1, 0.1]
+	fmeval=True
+	low_rating_thres=0.0
+eval:
+	batch_size=128
+	cutoff=[5, 10, 20]
+	val_metrics=['auc', 'logloss']
+	val_n_epoch=1
+	test_metrics=['auc', 'logloss']
+	topk=100
+	save_path=./saved/
+fs:
+	name=optFS
+	retrain=True
+	retrain_prepare=True
+	optimization=Normal
+	retrain_reinitialize=False
+	before_train_prepare=False
+	reinitialize=param
+	class=<class 'recstudio.model.feature_selection.optfs.optFS'>
+model:
+	embed_dim=16
+	item_bias=False
+	mlp_layer=[128, 128, 128]
+	activation=relu
+	num_layers=6
+	dropout=0.2
+	batch_norm=True
+train:
+	accelerator=gpu
+	ann=None
+	batch_size=512
+	early_stop_mode=max
+	early_stop_patience=5
+	epochs=2
+	gpu=1
+	grad_clip_norm=None
+	init_method=xavier_normal
+	item_batch_size=1024
+	learner=adam
+	learning_rate=0.01
+	num_threads=10
+	sampling_method=none
+	sampler=uniform
+	negative_count=0
+	excluding_hist=False
+	scheduler=None
+	seed=None
+	weight_decay=0.0
+	tensorboard_path=None
+[2023-05-30 14:09:43] INFO GPU id [0] are selected.
+[2023-05-30 14:09:43] WARNING No retriever is used, topk metrics is not supported.
+[2023-05-30 14:09:51] INFO save_dir:./saved/
+[2023-05-30 14:09:51] INFO DCN(
+  (loss_fn): BCEWithLogitLoss()
+  (feature_selection_layer): optFS(
+    (gate): ParameterDict(
+        (business_id): Parameter containing: [torch.cuda.FloatTensor of size 112395x1 (GPU 0)]
+        (business_name): Parameter containing: [torch.cuda.FloatTensor of size 83408x1 (GPU 0)]
+        (categories): Parameter containing: [torch.cuda.FloatTensor of size 103732x1 (GPU 0)]
+        (city): Parameter containing: [torch.cuda.FloatTensor of size 1181x1 (GPU 0)]
+        (postal_code): Parameter containing: [torch.cuda.FloatTensor of size 2853x1 (GPU 0)]
+        (review_id): Parameter containing: [torch.cuda.FloatTensor of size 4250484x1 (GPU 0)]
+        (state): Parameter containing: [torch.cuda.FloatTensor of size 18x1 (GPU 0)]
+        (user_id): Parameter containing: [torch.cuda.FloatTensor of size 277632x1 (GPU 0)]
+        (user_name): Parameter containing: [torch.cuda.FloatTensor of size 31148x1 (GPU 0)]
+    )
+  )
+  (embedding): Embeddings(
+    num_features=10, embed_dim=16, reduction=mean, share_dense_embedding=True
+    (embeddings): ModuleDict(
+      (review_id): Embedding(4250484, 16, padding_idx=0)
+      (business_name): Embedding(83408, 16, padding_idx=0)
+      (business_id): Embedding(112395, 16, padding_idx=0)
+      (user_id): Embedding(277632, 16, padding_idx=0)
+      (state): Embedding(18, 16, padding_idx=0)
+      (postal_code): Embedding(2853, 16, padding_idx=0)
+      (categories): Embedding(103732, 16, padding_idx=0)
+      (city): Embedding(1181, 16, padding_idx=0)
+      (user_name): Embedding(31148, 16, padding_idx=0)
+      (date): DenseEmbedding(
+        embedding_dim=16, bias=False, batch_norm=True
+        (batch_norm_layer): BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (weight): Linear(in_features=1, out_features=16, bias=False)
+      )
+    )
+    (seq_pooling_layer): SeqPoolingLayer(pooling_type=mean, keepdim=False)
+  )
+  (cross_net): CrossNetwork(
+    embed_dim=160, num_layers=6
+    (cross): ModuleList(
+      (0): CrossInteraction()
+      (1): CrossInteraction()
+      (2): CrossInteraction()
+      (3): CrossInteraction()
+      (4): CrossInteraction()
+      (5): CrossInteraction()
+    )
+  )
+  (mlp): MLPModule(
+    (model): Sequential(
+      (0): Dropout(p=0.2, inplace=False)
+      (1): Linear(in_features=160, out_features=128, bias=True)
+      (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (3): ReLU()
+      (4): Dropout(p=0.2, inplace=False)
+      (5): Linear(in_features=128, out_features=128, bias=True)
+      (6): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (7): ReLU()
+      (8): Dropout(p=0.2, inplace=False)
+      (9): Linear(in_features=128, out_features=128, bias=True)
+      (10): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (11): ReLU()
+    )
+  )
+  (fc): Linear(in_features=288, out_features=1, bias=True)
+)
+[2023-05-30 14:09:51] INFO GPU id [0] are selected.
+[2023-05-30 14:11:38] INFO Training: Epoch=  0 [logloss=0.4843 auc=0.5000 train_loss_0=0.4710]
+[2023-05-30 14:11:38] INFO Train time: 83.59325s. Valid time: 22.80163s. GPU RAM: 0.55/9.77 GB
+[2023-05-30 14:11:38] INFO auc improved. Best value: 0.5000
+[2023-05-30 14:11:39] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:13:24] INFO Training: Epoch=  1 [logloss=0.4833 auc=0.5000 train_loss_0=0.4708]
+[2023-05-30 14:13:24] INFO Train time: 80.73363s. Valid time: 24.12064s. GPU RAM: 0.85/9.77 GB
+[2023-05-30 14:13:24] INFO auc improved. Best value: 0.5000
+[2023-05-30 14:13:26] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:13:27] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:13:27] INFO retrain model
+[2023-05-30 14:13:27] INFO save_dir:./saved/
+[2023-05-30 14:15:12] INFO Training: Epoch=  0 [logloss=0.4832 auc=0.5000 train_loss_0=0.4710]
+[2023-05-30 14:15:12] INFO Train time: 81.91989s. Valid time: 23.08051s. GPU RAM: 1.11/9.77 GB
+[2023-05-30 14:15:12] INFO auc improved. Best value: 0.5000
+[2023-05-30 14:15:14] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:16:58] INFO Training: Epoch=  1 [logloss=0.4841 auc=0.5000 train_loss_0=0.4707]
+[2023-05-30 14:16:58] INFO Train time: 81.88472s. Valid time: 22.53805s. GPU RAM: 1.11/9.77 GB
+[2023-05-30 14:16:58] INFO auc improved. Best value: 0.5000
+[2023-05-30 14:17:00] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:17:01] INFO Best model checkpoint saved in ./saved/DCN/yelp/2023-05-30-14-09-12-371613.ckpt.
+[2023-05-30 14:17:26] INFO Testing:  [logloss=0.4849 auc=0.5000]

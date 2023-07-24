@@ -68,7 +68,7 @@ def run(model: str, dataset: str, model_config: Dict=None, data_config: Dict=Non
     use_fields = None
     if feature_selection_method in ['Lasso', 'GBDT']:
         # 算上float和rating以及选择的token特征，一共k个
-        k = 12
+        k = 9
         use_fields = machine_learning_selection(datasets, feature_selection_method, k)
 
 
