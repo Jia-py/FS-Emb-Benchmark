@@ -1,45 +1,53 @@
 url: /root/autodl-tmp/avazu
-user_id_field: &u device_id:token # TODO: comments for &u and *u
+user_id_field: &u user_id:token # TODO: comments for &u and *u
 item_id_field: &i item_id:token
 rating_field: &r label:float
 time_field: &t timestamp:float
 time_format: ~
 
 
-encoding_method:
-inter_feat_name: avazu.inter
-inter_feat_field: [*u, *i, *r, *t, 'C1:token', 'banner_pos:token', 'site_id:token', 'site_domain:token', 'site_category:token', 'app_id:token', 'app_domain:token',
-       'app_category:token','device_model:token', 'device_type:token', 'device_conn_type:token',
-        'C14:token', 'C15:token', 'C16:token', 'C17:token', 'C18:token',
-       'C19:token', 'C20:token', 'C21:token']
-dtype: ['object','float32','int8','int32','int16','int8','object','object','object','object','object','object','object','object',
-        'int8','int8','int16','int16','int16','int16','int8','int16','int32','int16']
-inter_feat_header: ~
+encoding_method: ~
+inter_feat_name: avazu_new.csv
+inter_feat_field: ['item_id:token', 'label:float', 'timestamp:float', 'C1:token',
+       'banner_pos:float', 'site_id:token', 'site_domain:token',
+       'site_category:token', 'app_id:token', 'app_domain:token',
+       'app_category:token', 'device_id:token', 'device_ip:token',
+       'device_model:token', 'device_type:token', 'device_conn_type:token',
+       'C14:token', 'C15:token', 'C16:token', 'C17:token', 'C18:token',
+       'C19:token', 'C20:token', 'C21:token', 'user_id:token']
+# dtype: ['object','float32','int8','int32','int16','int8','object','object','object','object','object','object','object','object',
+#         'int8','int8','int16','int16','int16','int16','int8','int16','int32','int16']
+inter_feat_header: 0
 
 
 user_feat_name: ~
-user_feat_field: [[*u]]
+user_feat_field: ~
 user_feat_header: ~
 
 
 item_feat_name: ~
-item_feat_field: [[*i]]
+item_feat_field: ~
 item_feat_header: ~
 
 
-use_fields: ~
-field_separator: "\t"
-min_user_inter: 5
-min_item_inter: 5
+use_fields: [item_id, label, 'C1', 'site_id', 'site_domain', 'site_category', 'app_id', 'app_domain',
+       'app_category', device_id, 'device_ip', 'device_model', 'device_type', 'device_conn_type',
+        'C14', 'C15', 'C16', 'C17', 'C18',
+       'C19', 'C20', 'C21']
+field_separator: ","
+min_user_inter: 0
+min_item_inter: 0
 field_max_len: ~
-low_rating_thres: 3.0
+low_rating_thres: ~
+# ranker_rating_threshold: 1
+binarized_rating_thres: 1.0
 max_seq_len: 20
 
 # network feature, including social network and knowledge graph, the first two fields are remapped the corresponding features
 network_feat_name: ~ #[[social.txt], [ml-100k.kg, ml-100k.link]]
-mapped_feat_field: [*u, *i]
+mapped_feat_field: ~
 network_feat_field: ~
 network_feat_header: [~, ~]
 
 
-save_cache: False # whether to save processed dataset to cache.
+save_cache: false # whether to save processed dataset to cache.

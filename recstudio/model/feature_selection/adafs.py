@@ -24,7 +24,7 @@ class MLP(nn.Module):
 
 class AdaFS(nn.Module):
 
-    def __init__(self, field2token2idx, config, field2type, device) -> None:
+    def __init__(self, field2token2idx, config, field2type, device, use_fields) -> None:
         super().__init__()
         self.field2token2idx = field2token2idx
         self.feature_num = len(field2type)-1
@@ -40,7 +40,6 @@ class AdaFS(nn.Module):
     def forward(self, x, current_epoch, fields, batch_data):
         fields = list(fields)
         b,f,e = x.shape
-        token_fields = [field for field in fields if self.field2type[field]=='token']
         if current_epoch <= self.pretrain_epoch_num:
             return x
         else:

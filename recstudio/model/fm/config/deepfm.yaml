@@ -1,5 +1,5 @@
 model:
-  embed_dim: 16
+  embed_dim: 8
   mlp_layer: [64,64,64]
   activation: relu
   dropout: 0.2

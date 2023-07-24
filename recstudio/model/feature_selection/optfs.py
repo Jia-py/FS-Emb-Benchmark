@@ -3,10 +3,10 @@ import torch.nn as nn
 
 class optFS(nn.Module):
 
-    def __init__(self, field2token2idx, config, field2type, device) -> None:
+    def __init__(self, field2token2idx, config, field2type, device, use_fields) -> None:
         super().__init__()
         self.field2token2idx = field2token2idx
-        self.gate = {field : torch.Tensor(len(field2token2idx[field]), 1).to(device) for field in field2token2idx}
+        self.gate = {field : torch.Tensor(len(field2token2idx[field]), 1).to(device) for field in use_fields}
         for field in self.gate:
             torch.nn.init.xavier_uniform_(self.gate[field].data)
 
@@ -19,6 +19,7 @@ class optFS(nn.Module):
 
         self.epochs = config['train']['epochs']
         self.field2type = field2type
+        self.use_fields = use_fields
 
         self.mode = 'train'
         self.device = device

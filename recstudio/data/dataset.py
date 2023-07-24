@@ -56,8 +56,8 @@ class TripletDataset(Dataset):
             self._load_all_data(data_dir, self.config['field_separator'])
             # first factorize user id and item id, and then filtering to
             # determine the valid user set and item set
-            self._filter(self.config['min_user_inter'],
-                         self.config['min_item_inter'])
+            # self._filter(self.config['min_user_inter'],
+            #              self.config['min_item_inter'])
             self._float_preprocess()
             self._map_all_ids()
             self._post_preprocess()

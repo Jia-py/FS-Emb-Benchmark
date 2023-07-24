@@ -4,16 +4,17 @@ import numpy as np
 
 class AutoField(nn.Module):
 
-    def __init__(self, field2token2idx, config, field2type, device) -> None:
+    def __init__(self, field2token2idx, config, field2type, device, use_fields) -> None:
         super().__init__()
         self.field2token2idx = field2token2idx
-        self.gate = {field : torch.Tensor(np.ones([1,2])*0.5).to(device) for field in field2token2idx}
+        self.gate = {field : torch.Tensor(np.ones([1,2])*0.5).to(device) for field in use_fields}
         self.gate = {field : torch.nn.Parameter(self.gate[field]) for field in self.gate}
         self.gate = torch.nn.ParameterDict(self.gate)
         self.tau = 1.0
 
         self.epochs = config['train']['epochs']
         self.field2type = field2type
+        self.use_fields = use_fields
 
         self.mode = 'train'
         self.device = device
@@ -44,7 +45,7 @@ class AutoField(nn.Module):
         gate = torch.concat([self.gate[field] for field in self.gate], dim=0)[:,-1] # token_num, 2
         indices = torch.argsort(gate, descending=True)
         # use_fields = [user_id, item_id]
-        use_fields = [field for field in self.field2type if self.field2type[field]!='token' and self.field2type[field]!='token_seq']
+        use_fields = [field for field in self.use_fields if self.field2type[field]!='token' and self.field2type[field]!='token_seq']
         tmp_num = len(use_fields)
         for i in indices:
             # if fields[i] in [user_id, item_id]:
